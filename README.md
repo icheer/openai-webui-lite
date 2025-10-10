@@ -10,6 +10,17 @@
 > 🎯 **推荐使用 Deno Deploy 部署**  
 > Deno Deploy 部署简单快捷，提供稳定的全球访问，强烈推荐使用 **Deno Deploy** 部署本服务！
 
+> 💡 **推荐使用心流AI获取免费API**  
+> 推荐使用阿里巴巴旗下的 [心流AI](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 获取免费的国产开源大模型 API Key。
+> 
+> - **API文档**: [https://platform.iflow.cn/docs/](https://platform.iflow.cn/docs/)
+> - **BaseURL**: `https://apis.iflow.cn`
+> - **API Key**: 在 [心流 - 我的账户](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 注册后申请
+> - **可用模型**: Qwen3-Max、Qwen3-Coder-Plus、GLM-4.6、Kimi-K2、DeepSeek-V3.2-Exp、DeepSeek-R1 等 ([完整列表](https://platform.iflow.cn/models))
+> - **注意事项**: 
+>   - API Key 会在一段时间后自动过期（防滥用措施），过期后需在设置页面手动重置
+>   - 每个 Key 最多同时发起一个请求，超出限制会返回 429 错误码
+
 请合理使用 AI 资源，避免滥用！
 
 ## ✨ 特性
