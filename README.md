@@ -70,7 +70,7 @@
    - 使用 GitHub 账号登录
    - 点击 "New Project"
    - 选择您的 GitHub 仓库
-   - 设置入口文件为 `openai-worker.js`
+   - 设置入口文件为 `worker.js`
    - 点击 "Deploy"
 
 3. **配置环境变量（可选但推荐）**
@@ -108,7 +108,7 @@
 
 2. **配置代码**
 
-   - 将 `openai-worker.js` 中的代码复制到 Worker 编辑器
+   - 将 `worker.js` 中的代码复制到 Worker 编辑器
    - 修改以下配置：
 
    ```javascript
@@ -255,7 +255,7 @@ curl -X POST "https://your-domain.com/v1/chat/completions" \
 
 ### 代码配置（备选）
 
-如果不想使用环境变量，也可以直接在 `openai-worker.js` 中修改：
+如果不想使用环境变量，也可以直接在 `worker.js` 中修改：
 
 ```javascript
 // ⚠️ 注意: 当您fork项目并且仓库为公开时，请务必谨慎操作，以免您包含OpenAI密钥的Commit被暴露在公网，造成Key泄露的情况
@@ -387,7 +387,7 @@ _A: Deno Deploy 部署简单快捷，提供稳定的全球访问。两个平台�
 _A: 功能完全相同，只是部署方式不同。代码都支持流式响应、密钥轮换、Web 界面等全部特性。_
 
 **Q: 可以同时部署到两个平台吗？**<br>
-_A: 可以的！`openai-worker.js` 内部判断了当前服务器环境，可以同时部署到两个平台。_
+_A: 可以的！`worker.js` 内部判断了当前服务器环境，可以同时部署到两个平台。_
 
 **Q: 为什么选择两轮问答模式？**<br>
 _A: 在保持简洁的基础上，支持一次追问能够满足大多数场景需求，避免过于复杂的多轮对话造成不可控的额外开销。_
