@@ -1384,7 +1384,18 @@
               this.availableModels = firstItem
                 .trim()
                 .split(',')
-                .map(i => ({ label: i.trim(), value: i.trim() }));
+                .map(id => id.trim())
+                .filter(id => id)
+                .map(id => {
+                  const parts = id.split('-');
+                  parts.forEach((part, index) => {
+                    parts[index] = part.charAt(0).toUpperCase() + part.slice(1);
+                  });
+                  return {
+                    label: parts.join(' '),
+                    value: id
+                  };
+                });
             }
           },
           // 备用的花括号解析方法，用于处理特殊情况
