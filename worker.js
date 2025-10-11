@@ -35,6 +35,9 @@ const demoMemory = {
   maxTimes: DEMO_MAX_TIMES_PER_HOUR_DEFAULT
 };
 
+// API Key 轮询索引
+let apiKeyIndex = 0;
+
 // 通用的请求处理函数
 async function handleRequest(request, env = {}) {
   // 从环境变量获取配置
@@ -111,7 +114,7 @@ async function handleRequest(request, env = {}) {
       401
     );
   } else if (apiKey === SECRET_PASSWORD) {
-    apiKey = getRandomApiKey(API_KEY_LIST);
+    apiKey = getNextApiKey(API_KEY_LIST);
     urlSearch = urlSearch.replace(`key=${SECRET_PASSWORD}`, `key=${apiKey}`);
   } else if (apiKey === DEMO_PASSWORD && DEMO_PASSWORD) {
     // 临时密码, 仅限于测试使用, 每小时最多调用指定次数
@@ -130,7 +133,7 @@ async function handleRequest(request, env = {}) {
       demoMemory.times = 0;
     }
     demoMemory.times++;
-    apiKey = getRandomApiKey(API_KEY_LIST);
+    apiKey = getNextApiKey(API_KEY_LIST);
     urlSearch = urlSearch.replace(`key=${DEMO_PASSWORD}`, `key=${apiKey}`);
   }
 
@@ -213,10 +216,17 @@ function createErrorResponse(message, status) {
   );
 }
 
-function getRandomApiKey(apiKeyList) {
-  const len = apiKeyList.length;
-  const idx = ~~(Math.random() * len);
-  return apiKeyList[idx];
+/**
+ * 轮询获取下一个 API Key
+ * 使用递增索引方式，避免同一时间多个请求使用同一个 Key
+ */
+function getNextApiKey(apiKeyList) {
+  if (!apiKeyList || apiKeyList.length === 0) {
+    throw new Error('API Key list is empty');
+  }
+  const key = apiKeyList[apiKeyIndex % apiKeyList.length];
+  apiKeyIndex = (apiKeyIndex + 1) % apiKeyList.length;
+  return key;
 }
 
 function getHtmlContent(modelIds) {
