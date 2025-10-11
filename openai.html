@@ -1387,13 +1387,17 @@
                 .map(id => id.trim())
                 .filter(id => id)
                 .map(id => {
+                  if (id.includes(':')) {
+                    const [value, label] = id.split(':').map(s => s.trim());
+                    return { value, label };
+                  }
                   const parts = id.split('-');
                   parts.forEach((part, index) => {
                     parts[index] = part.charAt(0).toUpperCase() + part.slice(1);
                   });
                   return {
-                    label: parts.join(' '),
-                    value: id
+                    value: id,
+                    label: parts.join(' ')
                   };
                 });
             }
