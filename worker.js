@@ -1223,8 +1223,8 @@ function getHtmlContent(modelIds) {
                   background: rgb(248, 106, 164);
                   border-radius: 50%;
                   color: rgb(255, 255, 255);
-                  height: 26px;
-                  width: 26px;
+                  height: 24px;
+                  width: 24px;
                 "
               >
                 <svg
