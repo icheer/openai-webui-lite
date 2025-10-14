@@ -1987,6 +1987,7 @@ function getHtmlContent(modelIds) {
                 const isWechat =
                   userAgent.includes('micromessenger') &&
                   userAgent.includes('mobile');
+                const isMobile = this.checkMobile();
                 if (true || isWechat) {
                   // 微信环境：显示图片让用户长按保存
                   const imageDataUrl = canvas.toDataURL('image/png');
@@ -1998,7 +1999,7 @@ function getHtmlContent(modelIds) {
                       '" style="max-width: 100%; height: auto; border-radius: 8px;" />',
                     showConfirmButton: true,
                     confirmButtonText: '我知道了',
-                    width: '92%',
+                    width: isMobile ? '92%' : 'auto',
                     padding: '0.25em 0 2em',
                     customClass: {
                       htmlContainer: 'swal-image-container'
