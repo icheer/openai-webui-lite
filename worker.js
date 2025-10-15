@@ -738,6 +738,10 @@ function getHtmlContent(modelIds) {
         transition: border-color 0.3s;
       }
 
+      .message-input.can-upload {
+        padding-left: 44px;
+      }
+
       .message-input:focus {
         outline: none;
         border-color: #a8edea;
@@ -826,11 +830,6 @@ function getHtmlContent(modelIds) {
       .upload-image-btn:disabled {
         opacity: 0.3;
         cursor: not-allowed;
-      }
-
-      /* 图片输入框左侧留空 */
-      .input-wrapper .message-input {
-        padding-left: 44px;
       }
 
       /* 上传的图片标签容器 */
@@ -1647,6 +1646,7 @@ function getHtmlContent(modelIds) {
             <div class="input-wrapper">
               <!-- 上传图片按钮 -->
               <button
+                v-if="isMySite"
                 class="upload-image-btn"
                 @click="triggerImageUpload"
                 :disabled="!canInput || uploadedImages.length >= 2 || isUploadingImage"
@@ -1667,6 +1667,7 @@ function getHtmlContent(modelIds) {
                 @input="onInputChange"
                 @keydown="handleKeyDown"
                 class="message-input"
+                :class="{'can-upload': isMySite}"
                 :placeholder="inputPlaceholder"
                 :disabled="!canInput"
                 rows="1"
@@ -1730,6 +1731,12 @@ function getHtmlContent(modelIds) {
         computed: {
           isPC() {
             return !this.isMobile;
+          },
+          hostname() {
+            return window.location.hostname;
+          },
+          isMySite() {
+            return this.hostname.endsWith('.keyi.ma');
           },
           currentSession() {
             return this.sessions.find(s => s.id === this.currentSessionId);
