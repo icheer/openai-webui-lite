@@ -2152,10 +2152,22 @@ function getHtmlContent(modelIds) {
               const formData = new FormData();
               formData.append('image', file);
 
-              const response = await fetch('https://pic.keyi.ma/upload', {
+              // 创建超时 Promise
+              const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('上传超时（15秒）')), 15000);
+              });
+
+              // 创建上传 Promise
+              const uploadPromise = fetch('https://pic.keyi.ma/upload', {
                 method: 'POST',
                 body: formData
               });
+
+              // 使用 Promise.race 实现超时控制
+              const response = await Promise.race([
+                uploadPromise,
+                timeoutPromise
+              ]);
 
               if (!response.ok) {
                 throw new Error('上传失败: ' + response.statusText);
