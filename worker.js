@@ -2557,7 +2557,7 @@ function getHtmlContent(modelIds) {
               if (!response.ok) {
                 const errorData = await response.json().catch(e => ({}));
                 const message =
-                  errorData.error?.message ||
+                  (errorData.error && errorData.error.message) ||
                   'HTTP ' + response.status + ': ' + response.statusText;
                 throw new Error(message);
               }
@@ -2592,7 +2592,7 @@ function getHtmlContent(modelIds) {
                         : trimmedLine.slice(5);
                       const data = JSON.parse(jsonStr);
 
-                      if (data.choices && data.choices[0]?.delta?.content) {
+                      if (data.choices && data.choices[0].delta.content) {
                         const delta = data.choices[0].delta.content;
                         if (delta) {
                           const shouldScroll = !this.streamingContent;
