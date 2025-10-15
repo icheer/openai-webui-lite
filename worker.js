@@ -2499,13 +2499,13 @@ function getHtmlContent(modelIds) {
               title: '关于 OpenAI WebUI Lite',
               html: \`
                 <div style="text-align: left; padding: 10px;">
-                  <h3 style="margin-top: 0; color: #333;">✨ 应用简介</h3>
+                  <h3 style="margin: 0 0 10px; color: #333;">✨ 应用简介</h3>
                   <p style="line-height: 1.6; color: #666;">
                     这是一个简单易用的 OpenAI API 代理服务，基于 Deno Deploy / Cloudflare Workers 部署。
                     只需要一个域名和 OpenAI API Key，即可免费为家人朋友提供 AI 问答服务。
                   </p>
                   
-                  <h3 style="margin-top: 20px; color: #333;">🎯 核心功能</h3>
+                  <h3 style="margin: 20px 0 10px; color: #333;">🎯 核心功能</h3>
                   <ul style="line-height: 1.8; color: #666; padding-left: 20px;">
                     <li>提供标准的 OpenAI API 代理端点</li>
                     <li>内置精美的 Web 聊天界面</li>
@@ -2517,19 +2517,18 @@ function getHtmlContent(modelIds) {
                     <li>智能会话命名，便于查找管理</li>
                   </ul>
                   
-                  <h3 style="margin-top: 20px; color: #333;">🔗 GitHub 仓库</h3>
+                  <h3 style="margin: 20px 0 10px; color: #333;">🔗 GitHub 仓库</h3>
                   <p style="line-height: 1.6; color: #666;">
                     <a href="https://github.com/icheer/openai-webui-lite" target="_blank" style="color: #0066cc; text-decoration: none;">
                       https://github.com/icheer/openai-webui-lite
                     </a>
                   </p>
                   
-                  <p style="margin-top: 20px; color: #999; font-size: 0.9em;">
+                  <p style="margin: 20px 0 10px; color: #999; font-size: 0.9em;">
                     请合理使用 AI 资源，避免滥用！
                   </p>
                 </div>
               \`,
-              icon: 'info',
               confirmButtonText: '知道了',
               confirmButtonColor: '#10a37f',
               width: isMobile ? '90%' : '600px'
