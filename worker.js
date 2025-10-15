@@ -798,6 +798,127 @@ function getHtmlContent(modelIds) {
         box-shadow: none;
       }
 
+      /* 上传图片按钮 */
+      .upload-image-btn {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 28px;
+        height: 28px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.6;
+        transition: all 0.2s ease;
+        padding: 0;
+      }
+
+      .upload-image-btn:hover:not(:disabled) {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.1);
+      }
+
+      .upload-image-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      /* 图片输入框左侧留空 */
+      .input-wrapper .message-input {
+        padding-left: 44px;
+      }
+
+      /* 上传的图片标签容器 */
+      .uploaded-images-tags {
+        position: absolute;
+        top: -44px;
+        left: 0;
+        display: flex;
+        gap: 8px;
+        padding-left: 20px;
+        z-index: 10;
+      }
+
+      /* 单个图片标签 */
+      .image-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px 4px 4px;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        border-radius: 20px;
+        font-size: 12px;
+        color: #333;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .image-tag img {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid white;
+      }
+
+      .image-tag-text {
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .image-tag-remove {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.15);
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        padding: 0;
+      }
+
+      .image-tag-remove:hover {
+        background: rgba(220, 53, 69, 0.8);
+        transform: scale(1.1);
+      }
+
+      /* 问题区域的图片链接 */
+      .question-images {
+        margin-top: 8px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .question-images a {
+        display: inline-block;
+        padding: 4px 10px;
+        background: rgba(168, 237, 234, 0.3);
+        border: 1px solid rgba(168, 237, 234, 0.5);
+        border-radius: 12px;
+        color: #2d3748;
+        text-decoration: none;
+        font-size: 12px;
+        transition: all 0.2s ease;
+      }
+
+      .question-images a:hover {
+        background: rgba(168, 237, 234, 0.5);
+        border-color: #a8edea;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
       .loading {
         display: flex;
         align-items: center;
@@ -881,6 +1002,21 @@ function getHtmlContent(modelIds) {
         .sessions {
           max-height: none;
           flex: 1;
+        }
+
+        /* 移动端图片标签样式 */
+        .uploaded-images-tags {
+          top: -36px;
+        }
+
+        .image-tag {
+          padding: 3px 6px 3px 3px;
+          font-size: 11px;
+        }
+
+        .image-tag img {
+          width: 24px;
+          height: 24px;
         }
       }
 
@@ -1341,6 +1477,21 @@ function getHtmlContent(modelIds) {
                   class="rendered-content markdown-body"
                   v-html="renderMarkdown(currentSession.question)"
                 ></div>
+                <!-- 图片链接 -->
+                <div
+                  v-if="currentSession.images && currentSession.images.length > 0"
+                  class="question-images"
+                >
+                  <a
+                    v-for="(img, index) in currentSession.images"
+                    :key="index"
+                    :href="img"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    图片{{ index + 1 }}
+                  </a>
+                </div>
               </div>
               <!-- 回答1 -->
               <div
@@ -1412,6 +1563,21 @@ function getHtmlContent(modelIds) {
                   class="rendered-content markdown-body"
                   v-html="renderMarkdown(currentSession.question2)"
                 ></div>
+                <!-- 图片链接 -->
+                <div
+                  v-if="currentSession.images2 && currentSession.images2.length > 0"
+                  class="question-images"
+                >
+                  <a
+                    v-for="(img, index) in currentSession.images2"
+                    :key="index"
+                    :href="img"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    [图片{{ index + 1 }}]
+                  </a>
+                </div>
               </div>
               <!-- 回答2 -->
               <div
@@ -1459,7 +1625,43 @@ function getHtmlContent(modelIds) {
           </div>
           <!-- 输入区域 -->
           <div class="input-area">
+            <!-- 上传的图片标签 -->
+            <div v-if="uploadedImages.length > 0" class="uploaded-images-tags">
+              <div
+                v-for="(img, index) in uploadedImages"
+                :key="index"
+                class="image-tag"
+              >
+                <img :src="img.url" :alt="'图片' + (index + 1)" />
+                <span class="image-tag-text">图片{{ index + 1 }}</span>
+                <button
+                  class="image-tag-remove"
+                  @click="removeImage(index)"
+                  title="移除图片"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
             <div class="input-wrapper">
+              <!-- 上传图片按钮 -->
+              <button
+                class="upload-image-btn"
+                @click="triggerImageUpload"
+                :disabled="!canInput || uploadedImages.length >= 2 || isUploadingImage"
+                :title="uploadedImages.length >= 2 ? '最多上传2张图片' : '上传图片'"
+              >
+                📎
+              </button>
+              <input
+                type="file"
+                ref="imageInput"
+                accept="image/*"
+                style="display: none"
+                @change="handleImageSelect"
+              />
+
               <textarea
                 v-model="messageInput"
                 @input="onInputChange"
@@ -1520,7 +1722,9 @@ function getHtmlContent(modelIds) {
             showSidebar: false,
             isStreaming: false,
             streamingContent: '',
-            abortController: null
+            abortController: null,
+            uploadedImages: [], // 待发送的图片列表 [{ url: string, file: File }]
+            isUploadingImage: false
           };
         },
         computed: {
@@ -1564,7 +1768,10 @@ function getHtmlContent(modelIds) {
             );
           },
           canSend() {
-            return this.messageInput.trim() && this.canInput;
+            return (
+              (this.messageInput.trim() || this.uploadedImages.length > 0) &&
+              this.canInput
+            );
           }
         },
         async mounted() {
@@ -1808,7 +2015,9 @@ function getHtmlContent(modelIds) {
                 answer2: '',
                 createdAt: '',
                 createdAt2: '',
-                draft: ''
+                draft: '',
+                images: [],
+                images2: []
               };
               this.sessions.unshift(newSession);
               this.currentSessionId = newSession.id;
@@ -1888,6 +2097,90 @@ function getHtmlContent(modelIds) {
           clearRolePrompt() {
             this.globalRolePrompt = '';
             this.updateGlobalRolePrompt();
+          },
+
+          // 触发图片上传
+          triggerImageUpload() {
+            if (this.uploadedImages.length >= 2) return;
+            this.$refs.imageInput.click();
+          },
+
+          // 处理图片选择
+          async handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 检查文件类型
+            if (!file.type.startsWith('image/')) {
+              Swal.fire({
+                title: '文件类型错误',
+                text: '请选择图片文件',
+                icon: 'error',
+                confirmButtonText: '确定'
+              });
+              event.target.value = '';
+              return;
+            }
+
+            // 检查文件大小 (限制10MB)
+            if (file.size > 10 * 1024 * 1024) {
+              Swal.fire({
+                title: '文件过大',
+                text: '图片大小不能超过10MB',
+                icon: 'error',
+                confirmButtonText: '确定'
+              });
+              event.target.value = '';
+              return;
+            }
+
+            // 上传图片
+            this.isUploadingImage = true;
+            try {
+              const formData = new FormData();
+              formData.append('image', file);
+
+              const response = await fetch('https://pic.keyi.ma/upload', {
+                method: 'POST',
+                body: formData
+              });
+
+              if (!response.ok) {
+                throw new Error('上传失败: ' + response.statusText);
+              }
+
+              const data = await response.json();
+
+              if (data.success && data.url) {
+                this.uploadedImages.push({
+                  url: data.url,
+                  file: file
+                });
+              } else {
+                throw new Error('上传失败: 返回数据格式错误');
+              }
+            } catch (error) {
+              console.error('上传图片失败:', error);
+              Swal.fire({
+                title: '上传失败',
+                text: error.message,
+                icon: 'error',
+                confirmButtonText: '确定'
+              });
+            } finally {
+              this.isUploadingImage = false;
+              event.target.value = ''; // 清空input,允许重复选择同一文件
+            }
+          },
+
+          // 移除图片
+          removeImage(index) {
+            this.uploadedImages.splice(index, 1);
+          },
+
+          // 清空上传的图片
+          clearUploadedImages() {
+            this.uploadedImages = [];
           },
 
           checkMobile() {
@@ -2059,7 +2352,11 @@ function getHtmlContent(modelIds) {
           },
 
           async sendMessage() {
-            if (!this.messageInput.trim() || !this.apiKey) return;
+            if (
+              (!this.messageInput.trim() && this.uploadedImages.length === 0) ||
+              !this.apiKey
+            )
+              return;
             if (this.isLoading || this.isStreaming) return;
 
             // 如果当前会话已有回答，创建新会话
@@ -2070,7 +2367,9 @@ function getHtmlContent(modelIds) {
 
             this.errorMessage = '';
             const userMessage = this.messageInput.trim();
+            const userImages = [...this.uploadedImages.map(img => img.url)]; // 复制图片URL数组
             this.clearInput();
+            this.clearUploadedImages(); // 清空上传的图片
             // 清空当前会话的草稿
             if (this.currentSession) {
               this.currentSession.draft = '';
@@ -2088,14 +2387,17 @@ function getHtmlContent(modelIds) {
               session.createdAt = new Date().toISOString();
               session.model = this.selectedModel;
               session.question = userMessage;
+              session.images = userImages;
               session.answer = '';
               session.question2 = '';
               session.answer2 = '';
+              session.images2 = [];
               this.autoFoldRolePrompt();
             } else {
               session.createdAt2 = new Date().toISOString();
               session.model2 = this.selectedModel;
               session.question2 = userMessage;
+              session.images2 = userImages;
               session.answer2 = '';
             }
             this.updateSessionTitle();
@@ -2119,9 +2421,34 @@ function getHtmlContent(modelIds) {
 
             // 添加对话历史
             if (session.question) {
+              const content = [];
+
+              // 添加文本内容
+              if (session.question.trim()) {
+                content.push({
+                  type: 'text',
+                  text: session.question
+                });
+              }
+
+              // 添加图片内容
+              if (session.images && session.images.length > 0) {
+                session.images.forEach(imageUrl => {
+                  content.push({
+                    type: 'image_url',
+                    image_url: {
+                      url: imageUrl
+                    }
+                  });
+                });
+              }
+
               messages.push({
                 role: 'user',
-                content: session.question
+                content:
+                  content.length === 1 && content[0].type === 'text'
+                    ? content[0].text
+                    : content
               });
             }
             if (session.answer) {
@@ -2131,9 +2458,34 @@ function getHtmlContent(modelIds) {
               });
             }
             if (session.question2) {
+              const content = [];
+
+              // 添加文本内容
+              if (session.question2.trim()) {
+                content.push({
+                  type: 'text',
+                  text: session.question2
+                });
+              }
+
+              // 添加图片内容
+              if (session.images2 && session.images2.length > 0) {
+                session.images2.forEach(imageUrl => {
+                  content.push({
+                    type: 'image_url',
+                    image_url: {
+                      url: imageUrl
+                    }
+                  });
+                });
+              }
+
               messages.push({
                 role: 'user',
-                content: session.question2
+                content:
+                  content.length === 1 && content[0].type === 'text'
+                    ? content[0].text
+                    : content
               });
             }
 
@@ -2267,11 +2619,13 @@ function getHtmlContent(modelIds) {
               const questionText = session.question2 || session.question || '';
               if (session.question2) {
                 session.question2 = '';
+                session.images2 = [];
                 session.createdAt2 = '';
                 session.model2 = '';
                 session.answer2 = '';
               } else {
                 session.question = '';
+                session.images = [];
                 session.createdAt = '';
                 session.model = '';
                 session.answer = '';
@@ -2307,6 +2661,7 @@ function getHtmlContent(modelIds) {
                 this.currentSession.model2 = '';
                 this.messageInput = this.currentSession.question2 || '';
                 this.currentSession.question2 = '';
+                this.currentSession.images2 = [];
               } else {
                 // 如果是第一轮问答，删除第一轮回答
                 this.currentSession.answer = '';
@@ -2314,6 +2669,7 @@ function getHtmlContent(modelIds) {
                 this.currentSession.model = '';
                 this.messageInput = this.currentSession.question || '';
                 this.currentSession.question = '';
+                this.currentSession.images = [];
               }
               this.saveData();
               this.sendMessage();
