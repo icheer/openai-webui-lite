@@ -916,6 +916,14 @@ function getHtmlContent(modelIds) {
         border-color: #a8edea;
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+      }
+
+      /* SweetAlert2 图片预览样式 */
+      .swal-image-preview {
+        max-width: 90vw !important;
+        max-height: 90vh !important;
+        object-fit: contain !important;
       }
 
       .loading {
@@ -1484,9 +1492,8 @@ function getHtmlContent(modelIds) {
                   <a
                     v-for="(img, index) in currentSession.images"
                     :key="index"
-                    :href="img"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="javascript:void(0)"
+                    @click="previewImage(img)"
                   >
                     图片{{ index + 1 }}
                   </a>
@@ -1570,11 +1577,10 @@ function getHtmlContent(modelIds) {
                   <a
                     v-for="(img, index) in currentSession.images2"
                     :key="index"
-                    :href="img"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="javascript:void(0)"
+                    @click="previewImage(img)"
                   >
-                    [图片{{ index + 1 }}]
+                    图片{{ index + 1 }}
                   </a>
                 </div>
               </div>
@@ -2205,6 +2211,20 @@ function getHtmlContent(modelIds) {
           // 清空上传的图片
           clearUploadedImages() {
             this.uploadedImages = [];
+          },
+
+          // 预览图片
+          previewImage(imageUrl) {
+            Swal.fire({
+              imageUrl: imageUrl,
+              imageAlt: '图片预览',
+              showCloseButton: true,
+              showConfirmButton: false,
+              width: 'auto',
+              customClass: {
+                image: 'swal-image-preview'
+              }
+            });
           },
 
           checkMobile() {
