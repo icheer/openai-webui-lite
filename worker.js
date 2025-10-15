@@ -1757,6 +1757,8 @@ function getHtmlContent(modelIds) {
               return 'AI 正在思考中...';
             } else if (this.isStreaming) {
               return 'AI 正在生成回答...';
+            } else if (this.isUploadingImage) {
+              return '图片上传中...';
             } else if (session.answer2) {
               return '当前会话已结束';
             } else if (session.answer) {
@@ -2002,7 +2004,8 @@ function getHtmlContent(modelIds) {
           },
 
           createNewSession() {
-            if (this.isLoading) return;
+            if (this.isLoading || this.isStreaming || this.isUploadingImage)
+              return;
             // 保存当前会话的草稿
             this.saveDraftToCurrentSession();
             const firstSession = this.sessions[0];
@@ -2039,7 +2042,8 @@ function getHtmlContent(modelIds) {
           },
 
           switchSession(sessionId) {
-            if (this.isLoading) return;
+            if (this.isLoading || this.isStreaming || this.isUploadingImage)
+              return;
             // 保存当前会话的草稿
             this.saveDraftToCurrentSession();
             this.currentSessionId = sessionId;
@@ -2054,7 +2058,8 @@ function getHtmlContent(modelIds) {
           },
 
           deleteSession(sessionId) {
-            if (this.isLoading) return;
+            if (this.isLoading || this.isStreaming || this.isUploadingImage)
+              return;
             const doDelete = () => {
               this.sessions = this.sessions.filter(s => s.id !== sessionId);
               if (this.currentSessionId === sessionId) {
@@ -2364,7 +2369,8 @@ function getHtmlContent(modelIds) {
               !this.apiKey
             )
               return;
-            if (this.isLoading || this.isStreaming) return;
+            if (this.isLoading || this.isStreaming || this.isUploadingImage)
+              return;
 
             // 如果当前会话已有回答，创建新会话
             if (this.currentSession && this.currentSession.answer2) {
@@ -2608,7 +2614,8 @@ function getHtmlContent(modelIds) {
 
           // 编辑已经问过的问题
           editQuestion() {
-            if (this.isLoading || this.isStreaming) return;
+            if (this.isLoading || this.isStreaming || this.isUploadingImage)
+              return;
             if (!this.currentSession) return;
             // 二次确认
             Swal.fire({
@@ -2625,12 +2632,14 @@ function getHtmlContent(modelIds) {
               const session = this.currentSession;
               const questionText = session.question2 || session.question || '';
               if (session.question2) {
+                this.uploadedImages = session.images2 || [];
                 session.question2 = '';
                 session.images2 = [];
                 session.createdAt2 = '';
                 session.model2 = '';
                 session.answer2 = '';
               } else {
+                this.uploadedImages = session.images || [];
                 session.question = '';
                 session.images = [];
                 session.createdAt = '';
@@ -2659,7 +2668,8 @@ function getHtmlContent(modelIds) {
               reverseButtons: true
             }).then(result => {
               if (!result.isConfirmed) return;
-              if (this.isLoading || this.isStreaming) return;
+              if (this.isLoading || this.isStreaming || this.isUploadingImage)
+                return;
               if (!this.currentSession || !this.currentSession.answer) return;
               // 如果是第二轮问答，删除第二轮回答
               if (this.currentSession.answer2) {
@@ -2910,6 +2920,7 @@ function getHtmlContent(modelIds) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
