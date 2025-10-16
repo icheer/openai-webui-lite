@@ -1785,6 +1785,7 @@ function getHtmlContent(modelIds) {
           canSend() {
             return (
               (this.messageInput.trim() || this.uploadedImages.length > 0) &&
+              !this.isUploadingImage &&
               this.canInput
             );
           }
@@ -2956,6 +2957,7 @@ function getHtmlContent(modelIds) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);

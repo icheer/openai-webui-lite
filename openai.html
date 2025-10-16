@@ -1552,6 +1552,7 @@
           canSend() {
             return (
               (this.messageInput.trim() || this.uploadedImages.length > 0) &&
+              !this.isUploadingImage &&
               this.canInput
             );
           }
