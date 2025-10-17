@@ -1739,7 +1739,7 @@ function getHtmlContent(modelIds) {
             <div class="input-wrapper">
               <!-- 上传图片按钮 -->
               <button
-                v-if="isMySite"
+                v-if="canUpload"
                 class="upload-image-btn"
                 @click="triggerImageUpload"
                 :disabled="!canInput || uploadedImages.length >= 2 || isUploadingImage"
@@ -1760,7 +1760,7 @@ function getHtmlContent(modelIds) {
                 @input="onInputChange"
                 @keydown="handleKeyDown"
                 class="message-input"
-                :class="{'can-upload': isMySite}"
+                :class="{'can-upload': canUpload}"
                 :placeholder="inputPlaceholder"
                 :disabled="!canInput"
                 rows="1"
@@ -1828,8 +1828,12 @@ function getHtmlContent(modelIds) {
           hostname() {
             return window.location.hostname;
           },
-          isMySite() {
-            return this.hostname.endsWith('.keyi.ma');
+          canUpload() {
+            const isSite = this.hostname.endsWith('.keyi.ma');
+            const isClaude = this.availableModels
+              .map(m => m.value)
+              .every(v => v.startsWith('claude'));
+            return isSite && !isClaude;
           },
           currentSession() {
             return this.sessions.find(s => s.id === this.currentSessionId);
