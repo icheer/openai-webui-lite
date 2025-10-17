@@ -2860,9 +2860,9 @@ function getHtmlContent(modelIds) {
               '-r1',
               '-haiku'
             ];
-            let summaryModel = summaryParts.find(part =>
-              this.availableModels.some(m => m.value.endsWith(part))
-            );
+            let summaryModel = this.availableModels.find(m => {
+              return summaryParts.some(part => m.value.endsWith(part));
+            });
             summaryModel =
               (summaryModel && summaryModel.value) || this.selectedModel;
             fetch('/v1/chat/completions', {
