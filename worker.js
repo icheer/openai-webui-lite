@@ -2546,8 +2546,11 @@ function getHtmlContent(modelIds) {
 
             // 组装messages - OpenAI格式
             if (this.globalRolePrompt.trim()) {
+              const isClaude = this.selectedModel
+                .toLowerCase()
+                .includes('claude');
               messages.push({
-                role: 'system',
+                role: !isClaude ? 'system' : 'assistant',
                 content: this.globalRolePrompt.trim()
               });
             }
@@ -2849,6 +2852,18 @@ function getHtmlContent(modelIds) {
             ];
 
             await this.sleep(150);
+            const summaryParts = [
+              '-mini',
+              '-nano',
+              '-k2',
+              '-v3.2',
+              '-r1',
+              '-haiku'
+            ];
+            const summaryModel =
+              summaryParts.find(part =>
+                this.availableModels.some(m => m.value.endsWith(part))
+              ) || this.selectedModel;
             fetch('/v1/chat/completions', {
               method: 'POST',
               headers: {
@@ -2856,7 +2871,7 @@ function getHtmlContent(modelIds) {
                 Authorization: 'Bearer ' + this.apiKey
               },
               body: JSON.stringify({
-                model: this.selectedModel,
+                model: summaryModel,
                 messages: messages,
                 temperature: 0.7,
                 max_tokens: 100
