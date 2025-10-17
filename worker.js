@@ -2860,10 +2860,11 @@ function getHtmlContent(modelIds) {
               '-r1',
               '-haiku'
             ];
-            const summaryModel =
-              summaryParts.find(part =>
-                this.availableModels.some(m => m.value.endsWith(part))
-              ) || this.selectedModel;
+            let summaryModel = summaryParts.find(part =>
+              this.availableModels.some(m => m.value.endsWith(part))
+            );
+            summaryModel =
+              (summaryModel && summaryModel.value) || this.selectedModel;
             fetch('/v1/chat/completions', {
               method: 'POST',
               headers: {
