@@ -6,19 +6,19 @@
     <meta name="theme-color" content="#f86aa4" />
     <meta name="description" content="OpenAI Chat - 智能对话助手" />
     <title>✨ OpenAI Chat</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    
+
     <!-- Web App Manifest -->
     <link rel="manifest" href="site.webmanifest" />
-    
+
     <!-- iOS Safari -->
     <link rel="apple-touch-icon" href="favicon.svg" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="OpenAI Chat" />
-    
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
     <script src="https://unpkg.com/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -1042,7 +1042,12 @@
   <body>
     <div id="app">
       <!-- 移动端菜单按钮 -->
-      <button v-show="isMobile" class="mobile-menu-btn" @click="toggleSidebar">
+      <button
+        v-cloak
+        v-show="isMobile"
+        class="mobile-menu-btn"
+        @click="toggleSidebar"
+      >
         {{ !showSidebar ? '☰' : '＜' }}
       </button>
       <!-- 移动端遮罩层 -->
