@@ -82,7 +82,7 @@ async function handleRequest(request, env = {}) {
     });
   }
 
-  if (apiPath === '/manifest.json') {
+  if (apiPath === '/manifest.json' || apiPath === '/site.webmanifest') {
     const manifestContent = getManifestContent();
     return new Response(manifestContent, {
       headers: {
