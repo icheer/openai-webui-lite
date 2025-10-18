@@ -2,7 +2,7 @@
   "name": "OpenAI Chat",
   "short_name": "OpenAI",
   "description": "OpenAI Chat - 智能对话助手",
-  "start_url": "./openai.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#f86aa4",
