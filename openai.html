@@ -1530,10 +1530,7 @@
           },
           canUpload() {
             const isSite = this.hostname.endsWith('.keyi.ma');
-            const isClaude = this.availableModels
-              .map(m => m.value)
-              .filter(v => v)
-              .every(v => v.startsWith('claude'));
+            const isClaude = this.selectedModel.startsWith('claude');
             return isSite && !isClaude;
           },
           currentSession() {
