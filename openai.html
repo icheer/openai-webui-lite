@@ -1459,6 +1459,7 @@
                 v-model="messageInput"
                 @input="onInputChange"
                 @keydown="handleKeyDown"
+                @paste="handlePaste"
                 class="message-input"
                 :class="{'can-upload': canUpload}"
                 :placeholder="inputPlaceholder"
@@ -1913,36 +1914,60 @@
             this.$refs.imageInput.click();
           },
 
-          // 处理图片选择
-          async handleImageSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+          // 处理粘贴事件
+          async handlePaste(event) {
+            // 只有在 canUpload 为 true 时才处理图片粘贴
+            if (!this.canUpload) return;
 
-            // 检查文件类型
-            if (!file.type.startsWith('image/')) {
-              Swal.fire({
-                title: '文件类型错误',
-                text: '请选择图片文件',
-                icon: 'error',
-                confirmButtonText: '确定'
-              });
-              event.target.value = '';
-              return;
+            const clipboardData = event.clipboardData || window.clipboardData;
+            if (!clipboardData) return;
+
+            const items = clipboardData.items;
+            if (!items) return;
+
+            // 遍历剪贴板项目，查找图片
+            for (let i = 0; i < items.length; i++) {
+              const item = items[i];
+              
+              // 检查是否为图片类型
+              if (item.type.startsWith('image/')) {
+                event.preventDefault(); // 阻止默认粘贴行为
+                
+                // 检查是否已达到上传限制
+                if (this.uploadedImages.length >= 2) {
+                  Swal.fire({
+                    title: '无法上传',
+                    text: '最多只能上传2张图片',
+                    icon: 'warning',
+                    confirmButtonText: '确定'
+                  });
+                  return;
+                }
+
+                // 获取图片文件
+                const file = item.getAsFile();
+                if (!file) continue;
+
+                // 检查文件大小 (限制10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                  Swal.fire({
+                    title: '文件过大',
+                    text: '图片大小不能超过10MB',
+                    icon: 'error',
+                    confirmButtonText: '确定'
+                  });
+                  return;
+                }
+
+                // 上传图片
+                await this.uploadImageFile(file);
+                return; // 只处理第一张图片
+              }
             }
+          },
 
-            // 检查文件大小 (限制10MB)
-            if (file.size > 10 * 1024 * 1024) {
-              Swal.fire({
-                title: '文件过大',
-                text: '图片大小不能超过10MB',
-                icon: 'error',
-                confirmButtonText: '确定'
-              });
-              event.target.value = '';
-              return;
-            }
-
-            // 上传图片
+          // 上传图片文件（提取公共逻辑）
+          async uploadImageFile(file) {
             this.isUploadingImage = true;
             try {
               const formData = new FormData();
@@ -1989,8 +2014,41 @@
               });
             } finally {
               this.isUploadingImage = false;
-              event.target.value = ''; // 清空input,允许重复选择同一文件
             }
+          },
+
+          // 处理图片选择
+          async handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 检查文件类型
+            if (!file.type.startsWith('image/')) {
+              Swal.fire({
+                title: '文件类型错误',
+                text: '请选择图片文件',
+                icon: 'error',
+                confirmButtonText: '确定'
+              });
+              event.target.value = '';
+              return;
+            }
+
+            // 检查文件大小 (限制10MB)
+            if (file.size > 10 * 1024 * 1024) {
+              Swal.fire({
+                title: '文件过大',
+                text: '图片大小不能超过10MB',
+                icon: 'error',
+                confirmButtonText: '确定'
+              });
+              event.target.value = '';
+              return;
+            }
+
+            // 上传图片
+            await this.uploadImageFile(file);
+            event.target.value = ''; // 清空input,允许重复选择同一文件
           },
 
           // 移除图片
