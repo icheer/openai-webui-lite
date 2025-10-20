@@ -2501,7 +2501,10 @@ function getHtmlContent(modelIds) {
             }
 
             this.errorMessage = '';
-            const userMessage = this.messageInput.trim();
+            const userMessage = this.messageInput
+              .trim()
+              .replace(new RegExp('<', 'g'), '&lt;')
+              .replace(new RegExp('>', 'g'), '&gt;');
             const userImages = [...this.uploadedImages.map(img => img.url)]; // 复制图片URL数组
             this.clearInput();
             this.clearUploadedImages(); // 清空上传的图片
@@ -2689,7 +2692,9 @@ function getHtmlContent(modelIds) {
                         let delta = data.choices[0].delta.content;
                         const regThinkStart = new RegExp('<think>');
                         const regThinkEnd = new RegExp('</think>');
-                        delta = delta.replace(regThinkStart, '<blockquote>').replace(regThinkEnd, '</blockquote>');
+                        delta = delta
+                          .replace(regThinkStart, '<blockquote>')
+                          .replace(regThinkEnd, '</blockquote>');
                         if (delta) {
                           const shouldScroll = !this.streamingContent;
                           this.streamingContent += delta;
