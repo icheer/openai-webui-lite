@@ -2386,7 +2386,10 @@
                       const data = JSON.parse(jsonStr);
 
                       if (data.choices && data.choices[0].delta.content) {
-                        const delta = data.choices[0].delta.content;
+                        let delta = data.choices[0].delta.content;
+                        const regThinkStart = new RegExp('<think>');
+                        const regThinkEnd = new RegExp('</think>');
+                        delta = delta.replace(regThinkStart, '<blockquote>').replace(regThinkEnd, '</blockquote>');
                         if (delta) {
                           const shouldScroll = !this.streamingContent;
                           this.streamingContent += delta;

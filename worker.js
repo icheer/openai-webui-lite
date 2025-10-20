@@ -1830,10 +1830,7 @@ function getHtmlContent(modelIds) {
           },
           canUpload() {
             const isSite = this.hostname.endsWith('.keyi.ma');
-            const isClaude = this.availableModels
-              .map(m => m.value)
-              .filter(v => v)
-              .every(v => v.startsWith('claude'));
+            const isClaude = this.selectedModel.startsWith('claude');
             return isSite && !isClaude;
           },
           currentSession() {
@@ -2689,7 +2686,10 @@ function getHtmlContent(modelIds) {
                       const data = JSON.parse(jsonStr);
 
                       if (data.choices && data.choices[0].delta.content) {
-                        const delta = data.choices[0].delta.content;
+                        let delta = data.choices[0].delta.content;
+                        const regThinkStart = new RegExp('<think>');
+                        const regThinkEnd = new RegExp('</think>');
+                        delta = delta.replace(regThinkStart, '<blockquote>').replace(regThinkEnd, '</blockquote>');
                         if (delta) {
                           const shouldScroll = !this.streamingContent;
                           this.streamingContent += delta;
