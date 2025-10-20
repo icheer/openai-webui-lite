@@ -1532,6 +1532,7 @@
             const isSite = this.hostname.endsWith('.keyi.ma');
             const isClaude = this.availableModels
               .map(m => m.value)
+              .filter(v => v)
               .every(v => v.startsWith('claude'));
             return isSite && !isClaude;
           },
@@ -2559,13 +2560,14 @@
             const summaryParts = [
               '-mini',
               '-nano',
+              '-lite',
               '-k2',
               '-v3.2',
               '-r1',
               '-haiku'
             ];
             let summaryModel = this.availableModels.find(m => {
-              return summaryParts.some(part => m.value.endsWith(part));
+              return summaryParts.some(part => m.value.includes(part));
             });
             summaryModel =
               (summaryModel && summaryModel.value) || this.selectedModel;

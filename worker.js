@@ -276,7 +276,7 @@ function getManifestContent() {
   "name": "OpenAI Chat",
   "short_name": "OpenAI",
   "description": "OpenAI Chat - 智能对话助手",
-  "start_url": "./openai.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#f86aa4",
@@ -1832,6 +1832,7 @@ function getHtmlContent(modelIds) {
             const isSite = this.hostname.endsWith('.keyi.ma');
             const isClaude = this.availableModels
               .map(m => m.value)
+              .filter(v => v)
               .every(v => v.startsWith('claude'));
             return isSite && !isClaude;
           },
@@ -2859,13 +2860,14 @@ function getHtmlContent(modelIds) {
             const summaryParts = [
               '-mini',
               '-nano',
+              '-lite',
               '-k2',
               '-v3.2',
               '-r1',
               '-haiku'
             ];
             let summaryModel = this.availableModels.find(m => {
-              return summaryParts.some(part => m.value.endsWith(part));
+              return summaryParts.some(part => m.value.includes(part));
             });
             summaryModel =
               (summaryModel && summaryModel.value) || this.selectedModel;
