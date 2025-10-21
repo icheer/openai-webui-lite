@@ -2228,11 +2228,11 @@ function getHtmlContent(modelIds) {
             // 遍历剪贴板项目，查找图片
             for (let i = 0; i < items.length; i++) {
               const item = items[i];
-              
+
               // 检查是否为图片类型
               if (item.type.startsWith('image/')) {
                 event.preventDefault(); // 阻止默认粘贴行为
-                
+
                 // 检查是否已达到上传限制
                 if (this.uploadedImages.length >= 2) {
                   Swal.fire({
@@ -2609,11 +2609,9 @@ function getHtmlContent(modelIds) {
 
             // 组装messages - OpenAI格式
             if (this.globalRolePrompt.trim()) {
-              const isClaude = this.selectedModel
-                .toLowerCase()
-                .includes('claude');
+              const needAssistant = /claude|gpt5/i.test(this.selectedModel);
               messages.push({
-                role: !isClaude ? 'system' : 'assistant',
+                role: !needAssistant ? 'system' : 'assistant',
                 content: this.globalRolePrompt.trim()
               });
             }
