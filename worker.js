@@ -445,7 +445,7 @@ function getSvgContent() {
 >
   <path
     d="M0 512a512 512 0 1 0 1024 0 512 512 0 0 0-1024 0z"
-    fill="#A663E6"
+    fill="#F86AA4"
     p-id="2193"
   ></path>
   <path
