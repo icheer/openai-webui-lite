@@ -204,6 +204,14 @@ async function handleRequest(request, env = {}) {
     const searchKeywords = backtickMatch
       ? backtickMatch[1].trim()
       : content.trim();
+    if (searchKeywords.includes('非搜索意图')) {
+      return new Response(
+        { results: [] },
+        {
+          status: 200
+        }
+      );
+    }
 
     const tavilyUrl = 'https://api.tavily.com/search';
     const tavilyKey = getRandomApiKey(TAVILY_KEY_LIST);
