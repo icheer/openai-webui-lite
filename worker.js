@@ -148,8 +148,15 @@ async function handleRequest(request, env = {}) {
       include_answer: 'basic',
       auto_parameters: true
     };
-    const tavilyRequest = buildProxyRequest(payload, tavilyKey);
-    const response = await fetch(tavilyUrl, tavilyRequest);
+    // fetch请求
+    const response = await fetch(tavilyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + tavilyKey
+      },
+      body: JSON.stringify(payload)
+    });
     console.log(response);
     return new Response(response.body, {
       status: response.status,
