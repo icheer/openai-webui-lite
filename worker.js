@@ -211,12 +211,12 @@ async function handleRequest(request, env = {}) {
       ? backtickMatch[1].trim()
       : content.trim();
     if (searchKeywords.includes('非搜索意图')) {
-      return new Response(
-        { results: [] },
-        {
-          status: 200
+      return new Response(JSON.stringify({ results: [] }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
         }
-      );
+      });
     }
 
     const tavilyUrl = 'https://api.tavily.com/search';
