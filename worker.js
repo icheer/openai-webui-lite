@@ -424,12 +424,9 @@ function replaceApiUrl(url) {
     'gateway.ai.cloudflare.com'
   ].some(p => url.includes(p));
   if (!isGemini) {
-    console.error(url);
     return url;
   } else {
-    console.warn(url);
-    url = url.replace('/v1/', '/v1beta/openai/');
-    console.error(url);
+    url = url.replace('/v1/chat', '/v1beta/openai/chat');
     return url;
   }
 }
