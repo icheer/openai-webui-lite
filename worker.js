@@ -2919,11 +2919,17 @@ function getHtmlContent(modelIds, tavilyKeys) {
                 .catch(() => ({}));
               const hasResult = JSON.stringify(searchRes).length > 20;
               if (hasResult) {
+                searchRes.results = (searchRes.results || []).map(i => {
+                  const { url, score, raw_content, ...rest } = i;
+                  return { ...rest };
+                });
                 messages.push({
                   role: 'assisatant',
                   content:
                     '我通过搜索引擎找到了以下信息: \\n' +
-                    JSON.stringify(searchRes)
+                    '<code>' +
+                    JSON.stringify(searchRes) +
+                    '</code>'
                 });
                 messages.push({
                   role: 'user',
