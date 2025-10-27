@@ -385,8 +385,8 @@ function getLiteModelId(modelIds) {
     '-haiku',
     'gpt'
   ];
-  let model = this.availableModels.find(m => {
-    return parts.some(part => m.value.toLowerCase().includes(part));
+  let model = models.find(m => {
+    return parts.some(part => m.toLowerCase().includes(part));
   });
   if (!model) {
     model = models[0];
