@@ -179,7 +179,7 @@ async function handleRequest(request, env = {}) {
 *   **你的输出：** \`非搜索意图\`
 
 ## 时间校准
-现在真实世界的时间是${new Date.toISOString()}。
+现在真实世界的时间是${new Date().toISOString()}。
 
 ## 用户输入
 「${query}」`;
