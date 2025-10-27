@@ -436,16 +436,16 @@ function getSvgContent() {
 <svg
   t="1761561926191"
   class="icon"
-  viewBox="0 0 1024 1024"
+  viewBox="0 0 24 24"
   version="1.1"
   xmlns="http://www.w3.org/2000/svg"
   p-id="1942"
-  width="200"
-  height="200"
+  width="24"
+  height="24"
 >
   <path
     d="M256 0h512q256 0 256 256v512q0 256-256 256H256Q0 1024 0 768V256Q0 0 256 0z"
-    fill="#F86AA4"
+    fill="#AB68FF"
     p-id="1943"
   ></path>
   <path
