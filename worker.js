@@ -59,6 +59,7 @@ async function handleRequest(request, env = {}) {
     .split(',')
     .map(i => i.trim())
     .filter(i => i);
+  const TITLE = getEnv('TITLE', env) || 'OpenAI Chat';
 
   // 更新 demoMemory 的最大次数
   demoMemory.maxTimes = DEMO_MAX_TIMES;
@@ -184,7 +185,8 @@ async function handleRequest(request, env = {}) {
     console.error(modelPrompt);
 
     const model = getLiteModelId(MODEL_IDS);
-    const modelUrl = `${API_BASE}/v1/chat/completions`;
+    let modelUrl = `${API_BASE}/v1/chat/completions`;
+    modelUrl = replaceApiUrl(modelUrl);
     const modelPayload = {
       model,
       messages: [
@@ -285,7 +287,9 @@ async function handleRequest(request, env = {}) {
   }
 
   // 3. 构建请求
-  const targetUrl = `${API_BASE}${apiPath}?${urlSearch}`;
+  let fullPath = `${API_BASE}${apiPath}`;
+  fullPath = replaceApiUrl(fullPath);
+  const targetUrl = `${fullPath}?${urlSearch}`;
   const proxyRequest = buildProxyRequest(request, apiKey);
 
   // 4. 发起请求并处理响应
@@ -410,6 +414,19 @@ function getLiteModelId(modelIds) {
     model = models[0];
   }
   return model;
+}
+
+function replaceApiUrl(url) {
+  const isGemini = [
+    'generativelanguage.googleapis.com',
+    '/google-ai-studio'
+  ].some(p => url.includes(p));
+  if (!isGemini) {
+    return url;
+  } else {
+    url = url.replace('/v1/', '/v1beta/openai/');
+    return url;
+  }
 }
 
 function getSvgContent() {
