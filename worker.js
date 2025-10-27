@@ -198,7 +198,7 @@ async function handleRequest(request, env = {}) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + getNextApiKey()
+        Authorization: 'Bearer ' + getNextApiKey(API_KEY_LIST)
       },
       body: JSON.stringify(modelPayload)
     });
