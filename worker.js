@@ -657,6 +657,10 @@ function getHtmlContent(modelIds, tavilyKeys) {
         display: none;
       }
 
+      .hidden {
+        display: none !important;
+      }
+
       /* 滚动条颜色浅一些 */
       body.pc *::-webkit-scrollbar {
         width: 10px;
@@ -857,6 +861,34 @@ function getHtmlContent(modelIds, tavilyKeys) {
         font-size: 14px;
         cursor: pointer;
         user-select: none;
+      }
+
+      .model-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+      }
+
+      .model-search-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        cursor: pointer;
+        font-size: 14px;
+        color: #4a5568;
+      }
+
+      .model-search-label:hover {
+        color: #2d3748;
+      }
+
+      .model-search {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        margin: 0;
       }
 
       .sessions {
@@ -1233,8 +1265,18 @@ function getHtmlContent(modelIds, tavilyKeys) {
           margin: 0;
         }
 
-        .model-select {
+        .model-wrap {
           width: 100%;
+        }
+
+        .model-select {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .model-search-label {
+          flex-shrink: 0;
+          font-size: 13px;
         }
 
         .input-area {
@@ -1638,20 +1680,32 @@ function getHtmlContent(modelIds, tavilyKeys) {
               </div>
               <span>OpenAI Chat</span>
             </h2>
-            <select
-              v-model="selectedModel"
-              class="model-select"
-              :disabled="isLoading || isStreaming"
-              @change="saveData()"
-            >
-              <option
-                v-for="i in availableModels"
-                :key="i.value"
-                :value="i.value"
+            <div class="model-wrap">
+              <select
+                v-model="selectedModel"
+                class="model-select"
+                id="selectedModel"
+                :disabled="isLoading || isStreaming"
+                @change="saveData()"
               >
-                {{ i.label }}
-              </option>
-            </select>
+                <option
+                  v-for="i in availableModels"
+                  :key="i.value"
+                  :value="i.value"
+                >
+                  {{ i.label }}
+                </option>
+              </select>
+              <label for="needSearch" class="model-search-label">
+                <input
+                  type="checkbox"
+                  v-model="needSearch"
+                  class="model-search"
+                  id="needSearch"
+                />
+                <span>联网搜索</span>
+              </label>
+            </div>
             <button
               v-if="currentSession && currentSession.answer && !isLoading && !isStreaming"
               class="share-btn"
@@ -1982,7 +2036,8 @@ function getHtmlContent(modelIds, tavilyKeys) {
             streamingContent: '',
             abortController: null,
             uploadedImages: [], // 待发送的图片列表 [{ url: string, file: File }]
-            isUploadingImage: false
+            isUploadingImage: false,
+            needSearch: false
           };
         },
         computed: {
@@ -2849,6 +2904,34 @@ function getHtmlContent(modelIds, tavilyKeys) {
               });
             }
 
+            // 这里根据最新的问句, 调用/search接口查询语料
+            if (this.needSearch) {
+              const query = session.question2 || session.question;
+              const searchRes = await fetch('/search', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: 'Bearer ' + this.apiKey
+                },
+                body: JSON.stringify({ query })
+              })
+                .then(res => res.json())
+                .catch(() => ({}));
+              const hasResult = JSON.stringify(searchRes).length > 20;
+              if (hasResult) {
+                messages.push({
+                  role: 'assisatant',
+                  content:
+                    '我通过搜索引擎找到了以下信息: \\n' +
+                    JSON.stringify(searchRes)
+                });
+                messages.push({
+                  role: 'user',
+                  content: '请根据上述信息详细回答我的问题。'
+                });
+              }
+            }
+
             try {
               const url = '/v1/chat/completions';
 
@@ -3247,7 +3330,7 @@ function getHtmlContent(modelIds, tavilyKeys) {
                     这是一个简单易用的 OpenAI API 代理服务，基于 Deno Deploy / Cloudflare Workers 部署。
                     只需要一个域名和 OpenAI API Key，即可免费为家人朋友提供 AI 问答服务。
                   </p>
-                  
+
                   <h3 style="margin: 20px 0 10px; color: #333;">🎯 核心功能</h3>
                   <ul style="line-height: 1.8; color: #666; padding-left: 20px;">
                     <li>提供标准的 OpenAI API 代理端点</li>
@@ -3259,14 +3342,14 @@ function getHtmlContent(modelIds, tavilyKeys) {
                     <li>一键生成问答截图，方便分享</li>
                     <li>智能会话命名，便于查找管理</li>
                   </ul>
-                  
+
                   <h3 style="margin: 20px 0 10px; color: #333;">🔗 GitHub 仓库</h3>
                   <p style="line-height: 1.6; color: #666;">
                     <a href="https://github.com/icheer/openai-webui-lite" target="_blank" style="color: #0066cc; text-decoration: none;">
                       https://github.com/icheer/openai-webui-lite
                     </a>
                   </p>
-                  
+
                   <p style="margin: 20px 0 10px; color: #999; font-size: 0.9em;">
                     请合理使用 AI 资源，避免滥用！
                   </p>
@@ -3290,6 +3373,7 @@ function getHtmlContent(modelIds, tavilyKeys) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
