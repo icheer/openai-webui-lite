@@ -2456,10 +2456,9 @@
                 .catch(() => ({}));
               const hasResult = JSON.stringify(searchRes).length > 20;
               if (hasResult) {
-                searchRes.results.forEach(i => {
-                  delete i.url;
-                  delete i.score;
-                  delete i.raw_content;
+                searchRes.results = (searchRes.results || []).map(i => {
+                  const { url, score, raw_content, ...rest } = i;
+                  return { ...rest };
                 });
                 messages.push({
                   role: 'assisatant',
