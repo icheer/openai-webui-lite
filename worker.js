@@ -194,7 +194,14 @@ async function handleRequest(request, env = {}) {
         }
       ]
     };
-    const modelResponse = await fetch(modelUrl, JSON.stringify(modelPayload));
+    const modelResponse = await fetch(modelUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + getNextApiKey()
+      },
+      body: JSON.stringify(modelPayload)
+    });
     // 接下来从modelResponse中提取content
     const modelJsonData = await modelResponse.json();
     const content = modelJsonData.choices?.[0]?.message?.content || '';
