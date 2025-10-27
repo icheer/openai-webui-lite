@@ -2464,7 +2464,9 @@
                   role: 'assisatant',
                   content:
                     '我通过搜索引擎找到了以下信息: \\n' +
-                    JSON.stringify(searchRes)
+                    '<code>' +
+                    JSON.stringify(searchRes) +
+                    '</code>'
                 });
                 messages.push({
                   role: 'user',
