@@ -427,6 +427,7 @@ function replaceApiUrl(url) {
     console.error(url);
     return url;
   } else {
+    console.warn(url);
     url = url.replace('/v1/', '/v1beta/openai/');
     console.error(url);
     return url;
