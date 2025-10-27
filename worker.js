@@ -65,6 +65,7 @@ async function handleRequest(request, env = {}) {
 
   const url = new URL(request.url);
   const apiPath = url.pathname;
+  const apiMethod = request.method.toUpperCase();
 
   // 处理HTML页面请求
   if (apiPath === '/' || apiPath === '/index.html') {
@@ -122,11 +123,12 @@ async function handleRequest(request, env = {}) {
   }
 
   // 调用tavily搜索API
-  if (apiPath === '/search') {
+  if (apiPath === '/search' && apiMethod === 'POST') {
     let apiKey =
       url.searchParams.get('key') || request.headers.get('Authorization') || '';
     apiKey = apiKey.replace('Bearer ', '').trim();
-    const query = url.searchParams.get('query') || '';
+    // 从body中获取query参数
+    const query = (await request.json()).query || '';
     if (!query) {
       return createErrorResponse('Missing query parameter', 400);
     }
@@ -138,16 +140,16 @@ async function handleRequest(request, env = {}) {
     } else if (![DEMO_PASSWORD, SECRET_PASSWORD].includes(apiKey)) {
       return createErrorResponse('Invalid API key. Provide a valid key.', 403);
     }
-    const url = 'https://api.tavily.com/search';
-    const key = getRandomApiKey(TAVILY_KEY_LIST);
+    const tavilyUrl = 'https://api.tavily.com/search';
+    const tavilyKey = getRandomApiKey(TAVILY_KEY_LIST);
     const payload = {
       query,
       max_results: 10,
       include_answer: 'basic',
       auto_parameters: true
     };
-    const tavilyRequest = buildProxyRequest(payload, key);
-    const response = await fetch(url, tavilyRequest);
+    const tavilyRequest = buildProxyRequest(payload, tavilyKey);
+    const response = await fetch(tavilyUrl, tavilyRequest);
     return new Response(response.body, {
       status: response.status,
       headers: response.headers
