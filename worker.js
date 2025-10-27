@@ -54,6 +54,11 @@ async function handleRequest(request, env = {}) {
   const DEMO_MAX_TIMES =
     parseInt(getEnv('DEMO_MAX_TIMES_PER_HOUR', env)) ||
     DEMO_MAX_TIMES_PER_HOUR_DEFAULT;
+  const TAVILY_KEYS = getEnv('TAVILY_KEYS', env) || '';
+  const TAVILY_KEY_LIST = (TAVILY_KEYS || '')
+    .split(',')
+    .map(i => i.trim())
+    .filter(i => i);
 
   // 更新 demoMemory 的最大次数
   demoMemory.maxTimes = DEMO_MAX_TIMES;
@@ -63,7 +68,7 @@ async function handleRequest(request, env = {}) {
 
   // 处理HTML页面请求
   if (apiPath === '/' || apiPath === '/index.html') {
-    const htmlContent = getHtmlContent(MODEL_IDS);
+    const htmlContent = getHtmlContent(MODEL_IDS, TAVILY_KEYS);
     return new Response(htmlContent, {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8',
@@ -116,9 +121,42 @@ async function handleRequest(request, env = {}) {
     );
   }
 
-  if (!apiPath.startsWith('/v1/')) {
+  // 调用tavily搜索API
+  if (apiPath === '/search') {
+    let apiKey =
+      url.searchParams.get('key') || request.headers.get('Authorization') || '';
+    apiKey = apiKey.replace('Bearer ', '').trim();
+    const query = url.searchParams.get('query') || '';
+    if (!query) {
+      return createErrorResponse('Missing query parameter', 400);
+    }
+    if (!apiKey) {
+      return createErrorResponse(
+        'Missing API key. Provide via ?key= parameter or Authorization header',
+        401
+      );
+    } else if (![DEMO_PASSWORD, SECRET_PASSWORD].includes(apiKey)) {
+      return createErrorResponse('Invalid API key. Provide a valid key.', 403);
+    }
+    const url = 'https://api.tavily.com/search';
+    const key = getRandomApiKey(TAVILY_KEY_LIST);
+    const payload = {
+      query,
+      max_results: 10,
+      include_answer: 'basic',
+      auto_parameters: true
+    };
+    const tavilyRequest = buildProxyRequest(payload, key);
+    const response = await fetch(url, tavilyRequest);
+    return new Response(response.body, {
+      status: response.status,
+      headers: response.headers
+    });
+  }
+
+  if (!apiPath.startsWith('/v1')) {
     return createErrorResponse(
-      apiPath + ' Invalid API path. Must start with /v1/',
+      apiPath + ' Invalid API path. Must start with /v1',
       400
     );
   }
@@ -249,6 +287,14 @@ function getNextApiKey(apiKeyList) {
   return key;
 }
 
+function getRandomApiKey(apiKeyList) {
+  if (!apiKeyList || apiKeyList.length === 0) {
+    throw new Error('API Key list is empty');
+  }
+  const randomIndex = Math.floor(Math.random() * apiKeyList.length);
+  return apiKeyList[randomIndex];
+}
+
 function getSvgContent() {
   return `
 <svg
@@ -296,7 +342,7 @@ function getManifestContent() {
   `;
 }
 
-function getHtmlContent(modelIds) {
+function getHtmlContent(modelIds, tavilyKeys) {
   let html = `
 <!DOCTYPE html>
 <html lang="zh-Hans">
@@ -3130,5 +3176,8 @@ function getHtmlContent(modelIds) {
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
+  if (!tavilyKeys) {
+    html = html.replace(`"model-search-label"`, `"hidden"`);
+  }
   return html;
 }

@@ -194,6 +194,10 @@
         display: none;
       }
 
+      .hidden {
+        display: none !important;
+      }
+
       /* 滚动条颜色浅一些 */
       body.pc *::-webkit-scrollbar {
         width: 10px;
@@ -394,6 +398,34 @@
         font-size: 14px;
         cursor: pointer;
         user-select: none;
+      }
+
+      .model-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+      }
+
+      .model-search-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        cursor: pointer;
+        font-size: 14px;
+        color: #4a5568;
+      }
+
+      .model-search-label:hover {
+        color: #2d3748;
+      }
+
+      .model-search {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        margin: 0;
       }
 
       .sessions {
@@ -770,8 +802,18 @@
           margin: 0;
         }
 
-        .model-select {
+        .model-wrap {
           width: 100%;
+        }
+
+        .model-select {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .model-search-label {
+          flex-shrink: 0;
+          font-size: 13px;
         }
 
         .input-area {
@@ -1175,20 +1217,32 @@
               </div>
               <span>OpenAI Chat</span>
             </h2>
-            <select
-              v-model="selectedModel"
-              class="model-select"
-              :disabled="isLoading || isStreaming"
-              @change="saveData()"
-            >
-              <option
-                v-for="i in availableModels"
-                :key="i.value"
-                :value="i.value"
+            <div class="model-wrap">
+              <select
+                v-model="selectedModel"
+                class="model-select"
+                id="selectedModel"
+                :disabled="isLoading || isStreaming"
+                @change="saveData()"
               >
-                {{ i.label }}
-              </option>
-            </select>
+                <option
+                  v-for="i in availableModels"
+                  :key="i.value"
+                  :value="i.value"
+                >
+                  {{ i.label }}
+                </option>
+              </select>
+              <label for="needSearch" class="model-search-label">
+                <input
+                  type="checkbox"
+                  v-model="needSearch"
+                  class="model-search"
+                  id="needSearch"
+                />
+                <span>联网搜索</span>
+              </label>
+            </div>
             <button
               v-if="currentSession && currentSession.answer && !isLoading && !isStreaming"
               class="share-btn"
@@ -1519,7 +1573,8 @@
             streamingContent: '',
             abortController: null,
             uploadedImages: [], // 待发送的图片列表 [{ url: string, file: File }]
-            isUploadingImage: false
+            isUploadingImage: false,
+            needSearch: false
           };
         },
         computed: {
