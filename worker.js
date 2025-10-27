@@ -407,11 +407,13 @@ function getLiteModelId(modelIds) {
     '-haiku',
     'gpt'
   ];
-  let model = models.find(m => {
-    return parts.some(part => m.toLowerCase().includes(part));
-  });
-  if (!model) {
-    model = models[0];
+  let model = models[0];
+  for (const p of parts) {
+    const match = models.find(m => m.toLowerCase().includes(p));
+    if (match) {
+      model = match;
+      break;
+    }
   }
   return model;
 }
@@ -419,7 +421,7 @@ function getLiteModelId(modelIds) {
 function replaceApiUrl(url) {
   const isGemini = [
     'generativelanguage.googleapis.com',
-    '/google-ai-studio'
+    'gateway.ai.cloudflare.com'
   ].some(p => url.includes(p));
   if (!isGemini) {
     console.error(url);
