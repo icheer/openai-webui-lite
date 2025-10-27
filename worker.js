@@ -2924,7 +2924,7 @@ function getHtmlContent(modelIds, tavilyKeys) {
                   return { ...rest };
                 });
                 messages.push({
-                  role: 'assisatant',
+                  role: 'assistant',
                   content:
                     '我通过搜索引擎找到了以下信息: \\n' +
                     '<code>' +
