@@ -1,0 +1,8 @@
+name = "openai-webui-lite"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[env.production.vars]
+# 在 Cloudflare Dashboard 中配置敏感信息
+# API_KEYS = "key1,key2,key3"
+# API_BASE = "https://generativelanguage.googleapis.com"
