@@ -138,7 +138,7 @@ async function handleRequest(request, env = {}) {
     } else if (![DEMO_PASSWORD, SECRET_PASSWORD].includes(apiKey)) {
       return createErrorResponse('Invalid API key. Provide a valid key.', 403);
     }
-    const url = 'https://api.tavily.com/search';
+    const url = 'https://api.tavily.com/search'
     const key = getRandomApiKey(TAVILY_KEY_LIST);
     const payload = {
       query,
