@@ -2456,6 +2456,11 @@
                 .catch(() => ({}));
               const hasResult = JSON.stringify(searchRes).length > 20;
               if (hasResult) {
+                searchRes.results.forEach(i => {
+                  delete i.url;
+                  delete i.score;
+                  delete i.raw_content;
+                });
                 messages.push({
                   role: 'assisatant',
                   content:
