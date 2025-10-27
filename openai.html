@@ -2454,9 +2454,12 @@
               })
                 .then(res => res.json())
                 .catch(() => ({}));
-              const hasResult = JSON.stringify(searchRes).length > 20;
+              const hasResult =
+                searchRes.result &&
+                searchRes.result.length &&
+                JSON.stringify(searchRes).length > 40;
               if (hasResult) {
-                searchRes.results = (searchRes.results || []).map(i => {
+                searchRes.results = searchRes.results.map(i => {
                   const { url, score, raw_content, ...rest } = i;
                   return { ...rest };
                 });

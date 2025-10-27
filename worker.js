@@ -422,9 +422,11 @@ function replaceApiUrl(url) {
     '/google-ai-studio'
   ].some(p => url.includes(p));
   if (!isGemini) {
+    console.error(url);
     return url;
   } else {
     url = url.replace('/v1/', '/v1beta/openai/');
+    console.error(url);
     return url;
   }
 }
@@ -2934,9 +2936,12 @@ function getHtmlContent(modelIds, tavilyKeys) {
               })
                 .then(res => res.json())
                 .catch(() => ({}));
-              const hasResult = JSON.stringify(searchRes).length > 20;
+              const hasResult =
+                searchRes.result &&
+                searchRes.result.length &&
+                JSON.stringify(searchRes).length > 40;
               if (hasResult) {
-                searchRes.results = (searchRes.results || []).map(i => {
+                searchRes.results = searchRes.results.map(i => {
                   const { url, score, raw_content, ...rest } = i;
                   return { ...rest };
                 });
