@@ -141,7 +141,7 @@ async function handleRequest(request, env = {}) {
       return createErrorResponse('Invalid API key. Provide a valid key.', 403);
     }
 
-    const prompt =
+    const modelPrompt =
       `
 你是一位AI聊天应用的前置助手（search-helper），专为调用Tavily搜索引擎API服务。你的核心职责是从用户的自然语言问句中，精准、高效地提炼出最适合搜索引擎查询的关键词字符串。
 
@@ -183,6 +183,7 @@ async function handleRequest(request, env = {}) {
 
 ## 用户输入
 「${query}」`;
+
     const model = getLiteModelId(MODEL_IDS);
     const modelUrl = `${API_BASE}/v1/chat/completions`;
     const modelPayload = {
@@ -190,7 +191,7 @@ async function handleRequest(request, env = {}) {
       messages: [
         {
           role: 'user',
-          content: prompt
+          content: modelPrompt.trim()
         }
       ]
     };
