@@ -140,10 +140,71 @@ async function handleRequest(request, env = {}) {
     } else if (![DEMO_PASSWORD, SECRET_PASSWORD].includes(apiKey)) {
       return createErrorResponse('Invalid API key. Provide a valid key.', 403);
     }
+
+    const prompt =
+      `
+你是一位AI聊天应用的前置助手（search-helper），专为调用Tavily搜索引擎API服务。你的核心职责是从用户的自然语言问句中，精准、高效地提炼出最适合搜索引擎查询的关键词字符串。
+
+## 核心使命
+你的存在是为了提升搜索引擎的调用效率和准确率。通过将用户的口ü语化、模糊的问题，转化为结构化、精确的搜索指令，你将直接优化用户的搜索体验并提供更相关的结果。
+
+## 任务要求
+1.  **意图识别：** 首先判断用户输入是否为有信息检索意图的查询。对于闲聊、打招呼或无法转化为搜索请求的指令，应识别为“非搜索意图”。
+2.  **关键信息提炼：** 若为搜索查询，需仔细分析问句，识别出所有关键元素，包括但不限于：核心主题、实体（人名、地名、组织名）、具体对象、时间、事件、属性以及用户的真实意图。
+3.  **关键词生成：** 将提炼出的关键信息，依据下述原则，组合成一个简洁、无歧义且能最大化搜索效果的关键词字符串。
+4.  **格式化输出：** 你的唯一输出必须是一个独立的字符串。此字符串要么是生成的关键词，要么是“非搜索意图”的标识。禁止添加任何解释或额外的文本。
+
+## 关键词生成原则
+1.  **简洁至上：** 使用最少的词语表达最核心的意图。
+2.  **核心优先：** 优先提取代表核心主题的名词或实体（人名、地名、产品名、专业术语）。
+3.  **移除停用词：** 省略口语化的填充词、疑问词和无实际意义的助词（如“我想知道”、“...是什么”、“...怎么样”、“的”、“呢”、“吗”）。
+4.  **处理歧义：** 当用户输入存在歧义时（如“苹果”），结合上下文选择最有可能的解释（通常是科技公司而非水果）。
+5.  **处理否定/排除：** 将明确的排除性词语（如“除了...”、“不要...”）转化为搜索引擎可识别的排除操作符（如 ` -
+      ` 符号）。
+
+## 示例
+*   **用户输入（常规）：** “我想了解一下最新的人工智能发展趋势，特别是关于大型语言模型在医疗领域的应用。”
+*   **你的输出：** \`人工智能发展趋势 大型语言模型 医疗应用\`
+
+*   **用户输入（简单）：** “上海今天的天气怎么样？”
+*   **你的输出：** \`上海 今天 天气\`
+
+*   **用户输入（含否定）：** “推荐一些除了特斯拉以外的新能源汽车品牌。”
+*   **你的输出：** \`新能源汽车品牌 -特斯拉\`
+
+*   **用户输入（含歧义）：** “分析一下苹果公司最近的财报表现。”
+*   **你的输出：** \`苹果公司 最新财报 分析\`
+
+*   **用户输入（非搜索意图）：** “你好呀！”
+*   **你的输出：** \`非搜索意图\`
+
+## 用户输入
+「${query}」`;
+    const model = getLiteModelId(MODEL_IDS);
+    const modelUrl = `${API_BASE}/v1/chat/completions`;
+    const modelPayload = {
+      model,
+      messages: [
+        {
+          role: 'user',
+          content: prompt.trim()
+        }
+      ]
+    };
+    const modelResponse = await fetch(modelUrl, JSON.stringify(modelPayload));
+    // 接下来从modelResponse中提取content
+    const modelJsonData = await modelResponse.json();
+    const content = modelJsonData.choices?.[0]?.message?.content || '';
+    // 从中找到反引号`的位置, 提取反引号里包裹的内容
+    const backtickMatch = content.match(/`([^`]+)`/);
+    const searchKeywords = backtickMatch
+      ? backtickMatch[1].trim()
+      : content.trim();
+
     const tavilyUrl = 'https://api.tavily.com/search';
     const tavilyKey = getRandomApiKey(TAVILY_KEY_LIST);
     const payload = {
-      query,
+      query: searchKeywords,
       max_results: 10,
       include_answer: 'basic',
       auto_parameters: true
@@ -303,6 +364,34 @@ function getRandomApiKey(apiKeyList) {
   }
   const randomIndex = Math.floor(Math.random() * apiKeyList.length);
   return apiKeyList[randomIndex];
+}
+
+function getLiteModelId(modelIds) {
+  if (!modelIds) return 'gemini-2.5-flash-lite';
+  const models = modelIds
+    .split(',')
+    .filter(i => i)
+    .map(i => i.trim().split(':')[0])
+    .filter(i => i);
+  const parts = [
+    '-mini',
+    '-nano',
+    '-lite',
+    '-flash',
+    '-k2',
+    '-v3.2',
+    '-r1',
+    '-v3',
+    '-haiku',
+    'gpt'
+  ];
+  let model = this.availableModels.find(m => {
+    return parts.some(part => m.value.toLowerCase().includes(part));
+  });
+  if (!model) {
+    model = models[0];
+  }
+  return model;
 }
 
 function getSvgContent() {
