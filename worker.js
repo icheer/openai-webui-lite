@@ -178,6 +178,9 @@ async function handleRequest(request, env = {}) {
 *   **用户输入（非搜索意图）：** “你好呀！”
 *   **你的输出：** \`非搜索意图\`
 
+## 时间校准
+现在真实世界的时间是${new Date.toISOString()}。
+
 ## 用户输入
 「${query}」`;
     const model = getLiteModelId(MODEL_IDS);
@@ -187,7 +190,7 @@ async function handleRequest(request, env = {}) {
       messages: [
         {
           role: 'user',
-          content: prompt.trim()
+          content: prompt
         }
       ]
     };
