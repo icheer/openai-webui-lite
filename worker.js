@@ -3219,7 +3219,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 body: JSON.stringify({
                   model: this.selectedModel,
                   messages: messages,
-                  temperature: 0.7,
+                  temperature: 1,
                   stream: true
                 }),
                 signal: this.abortController.signal
