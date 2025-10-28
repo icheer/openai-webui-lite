@@ -27,6 +27,7 @@ const MODEL_IDS_DEFAULT = 'gpt-5-pro,gpt-5,gpt-5-mini';
 const API_BASE_DEFAULT = 'https://api.openai.com';
 const DEMO_PASSWORD_DEFAULT = '';
 const DEMO_MAX_TIMES_PER_HOUR_DEFAULT = 15;
+const TITLE_DEFAULT = 'OpenAI Chat';
 
 // 临时演示密码记忆
 const demoMemory = {
@@ -59,7 +60,14 @@ async function handleRequest(request, env = {}) {
     .split(',')
     .map(i => i.trim())
     .filter(i => i);
-  const TITLE = getEnv('TITLE', env) || 'OpenAI Chat';
+  const TITLE = getEnv('TITLE', env) || TITLE_DEFAULT;
+
+  let CHAT_TYPE = 'openai';
+  if (/gemini/i.test(TITLE)) {
+    CHAT_TYPE = 'gemini';
+  } else if (/qwen/i.test(TITLE)) {
+    CHAT_TYPE = 'QWEN';
+  }
 
   // 更新 demoMemory 的最大次数
   demoMemory.maxTimes = DEMO_MAX_TIMES;
@@ -70,7 +78,7 @@ async function handleRequest(request, env = {}) {
 
   // 处理HTML页面请求
   if (apiPath === '/' || apiPath === '/index.html') {
-    const htmlContent = getHtmlContent(MODEL_IDS, TAVILY_KEYS);
+    const htmlContent = getHtmlContent(MODEL_IDS, TAVILY_KEYS, TITLE);
     return new Response(htmlContent, {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8',
@@ -80,11 +88,11 @@ async function handleRequest(request, env = {}) {
   }
 
   if (apiPath === '/favicon.svg') {
-    const svgContent = getSvgContent();
+    const svgContent = getSvgContent(CHAT_TYPE);
     return new Response(svgContent, {
       headers: {
         'Content-Type': 'image/svg+xml',
-        'Cache-Control': 'public, max-age=86400' // 缓存24小时
+        'Cache-Control': 'public, max-age=43200' // 缓存12小时
       }
     });
   }
@@ -94,7 +102,7 @@ async function handleRequest(request, env = {}) {
     return new Response(manifestContent, {
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
-        'Cache-Control': 'public, max-age=86400' // 缓存24小时
+        'Cache-Control': 'public, max-age=43200' // 缓存12小时
       }
     });
   }
@@ -142,47 +150,7 @@ async function handleRequest(request, env = {}) {
       return createErrorResponse('Invalid API key. Provide a valid key.', 403);
     }
 
-    const modelPrompt = `你是一位AI聊天应用的前置助手（search-helper），专为调用Tavily搜索引擎API服务。你的核心职责是从用户的自然语言问句中，精准、高效地提炼出最适合搜索引擎查询的关键词字符串。
-
-## 核心使命
-你的存在是为了提升搜索引擎的调用效率和准确率。通过将用户的口ü语化、模糊的问题，转化为结构化、精确的搜索指令，你将直接优化用户的搜索体验并提供更相关的结果。
-
-## 任务要求
-1.  **意图识别：** 首先判断用户输入是否为有信息检索意图的查询。对于闲聊、打招呼或无法转化为搜索请求的指令，应识别为“非搜索意图”。
-2.  **关键信息提炼：** 若为搜索查询，需仔细分析问句，识别出所有关键元素，包括但不限于：核心主题、实体（人名、地名、组织名）、具体对象、时间、事件、属性以及用户的真实意图。
-3.  **关键词生成：** 将提炼出的关键信息，依据下述原则，组合成一个简洁、无歧义且能最大化搜索效果的关键词字符串。
-4.  **格式化输出：** 你的唯一输出必须是一个独立的字符串。此字符串要么是生成的关键词，要么是“非搜索意图”的标识。禁止添加任何解释或额外的文本。
-
-## 关键词生成原则
-1.  **简洁至上：** 使用最少的词语表达最核心的意图。
-2.  **核心优先：** 优先提取代表核心主题的名词或实体（人名、地名、产品名、专业术语）。
-3.  **移除停用词：** 省略口语化的填充词、疑问词和无实际意义的助词（如“我想知道”、“...是什么”、“...怎么样”、“的”、“呢”、“吗”）。
-4.  **处理歧义：** 当用户输入存在歧义时（如“苹果”），结合上下文选择最有可能的解释（通常是科技公司而非水果）。
-5.  **处理否定\/排除：** 将明确的排除性词语（如“除了...”、“不要...”）转化为搜索引擎可识别的排除操作符（如 \`-\` 符号）。
-
-## 示例
-*   **用户输入（常规）：** “我想了解一下最新的人工智能发展趋势，特别是关于大型语言模型在医疗领域的应用。”
-*   **你的输出：** \`人工智能发展趋势 大型语言模型 医疗应用\`
-
-*   **用户输入（简单）：** “上海今天的天气怎么样？”
-*   **你的输出：** \`上海 今天 天气\`
-
-*   **用户输入（含否定）：** “推荐一些除了特斯拉以外的新能源汽车品牌。”
-*   **你的输出：** \`新能源汽车品牌 -特斯拉\`
-
-*   **用户输入（含歧义）：** “分析一下苹果公司最近的财报表现。”
-*   **你的输出：** \`苹果公司 最新财报 分析\`
-
-*   **用户输入（非搜索意图）：** “你好呀！”
-*   **你的输出：** \`非搜索意图\`
-
-## 时间校准
-现在真实世界的时间是${new Date().toISOString()}。
-
-## 用户输入
-「${query}」`;
-
-    console.error(modelPrompt);
+    const modelPrompt = getTavilyPrompt(query);
 
     const model = getLiteModelId(MODEL_IDS);
     let modelUrl = `${API_BASE}/v1/chat/completions`;
@@ -238,7 +206,6 @@ async function handleRequest(request, env = {}) {
       },
       body: JSON.stringify(payload)
     });
-    console.log(response);
     return new Response(response.body, {
       status: response.status,
       headers: response.headers
@@ -400,6 +367,7 @@ function getLiteModelId(modelIds) {
     '-nano',
     '-lite',
     '-flash',
+    '-4o',
     '-k2',
     '-v3.2',
     '-r1',
@@ -431,12 +399,57 @@ function replaceApiUrl(url) {
   }
 }
 
+function getTavilyPrompt(query) {
+  const str = `
+你是一位AI聊天应用的前置助手（search-helper），专为调用Tavily搜索引擎API服务。你的核心职责是从用户的自然语言问句中，精准、高效地提炼出最适合搜索引擎查询的关键词字符串。
+
+## 核心使命
+你的存在是为了提升搜索引擎的调用效率和准确率。通过将用户的口ü语化、模糊的问题，转化为结构化、精确的搜索指令，你将直接优化用户的搜索体验并提供更相关的结果。
+
+## 任务要求
+1.  **意图识别：** 首先判断用户输入是否为有信息检索意图的查询。对于闲聊、打招呼或无法转化为搜索请求的指令，应识别为“非搜索意图”。
+2.  **关键信息提炼：** 若为搜索查询，需仔细分析问句，识别出所有关键元素，包括但不限于：核心主题、实体（人名、地名、组织名）、具体对象、时间、事件、属性以及用户的真实意图。
+3.  **关键词生成：** 将提炼出的关键信息，依据下述原则，组合成一个简洁、无歧义且能最大化搜索效果的关键词字符串。
+4.  **格式化输出：** 你的唯一输出必须是一个独立的字符串。此字符串要么是生成的关键词，要么是“非搜索意图”的标识。禁止添加任何解释或额外的文本。
+
+## 关键词生成原则
+1.  **简洁至上：** 使用最少的词语表达最核心的意图。
+2.  **核心优先：** 优先提取代表核心主题的名词或实体（人名、地名、产品名、专业术语）。
+3.  **移除停用词：** 省略口语化的填充词、疑问词和无实际意义的助词（如“我想知道”、“...是什么”、“...怎么样”、“的”、“呢”、“吗”）。
+4.  **处理歧义：** 当用户输入存在歧义时（如“苹果”），结合上下文选择最有可能的解释（通常是科技公司而非水果）。
+5.  **处理否定/排除：** 将明确的排除性词语（如“除了...”、“不要...”）转化为搜索引擎可识别的排除操作符（如 \`-\` 符号）。
+
+## 示例
+*   **用户输入（常规）：** “我想了解一下最新的人工智能发展趋势，特别是关于大型语言模型在医疗领域的应用。”
+*   **你的输出：** \`人工智能发展趋势 大型语言模型 医疗应用\`
+
+*   **用户输入（简单）：** “上海今天的天气怎么样？”
+*   **你的输出：** \`上海 今天 天气\`
+
+*   **用户输入（含否定）：** “推荐一些除了特斯拉以外的新能源汽车品牌。”
+*   **你的输出：** \`新能源汽车品牌 -特斯拉\`
+
+*   **用户输入（含歧义）：** “分析一下苹果公司最近的财报表现。”
+*   **你的输出：** \`苹果公司 最新财报 分析\`
+
+*   **用户输入（非搜索意图）：** “你好呀！”
+*   **你的输出：** \`非搜索意图\`
+
+## 时间校准
+现在真实世界的时间是${new Date().toISOString()}。
+
+## 用户输入
+「${query}」
+  `;
+  return str.trim();
+}
+
 function getSvgContent() {
   const svgOpenai = `
 <svg
   t="1761563068979"
   class="icon"
-  viewBox="0 0 1024 1024"
+  viewBox="0 0 32 32"
   version="1.1"
   xmlns="http://www.w3.org/2000/svg"
   p-id="2192"
@@ -455,6 +468,148 @@ function getSvgContent() {
   ></path>
 </svg>
 `;
+  const svgGemini = `
+<svg
+  width="24"
+  height="24"
+  viewBox="0 0 32 32"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title>Gemini</title>
+  
+  <!-- White circular background with safe area -->
+  <circle cx="16" cy="16" r="24" fill="#ffffff"/>
+  
+  <!-- Icon centered: scale first, then translate to center -->
+  <g transform="translate(16, 16) scale(1) translate(-12, -12)">
+    <path
+      d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z"
+      fill="#3186FF"
+    ></path>
+    <path
+      d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z"
+      fill="url(#lobe-icons-gemini-fill-0)"
+    ></path>
+    <path
+      d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z"
+      fill="url(#lobe-icons-gemini-fill-1)"
+    ></path>
+    <path
+      d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z"
+      fill="url(#lobe-icons-gemini-fill-2)"
+    ></path>
+  </g>
+  <defs>
+    <linearGradient
+      gradientUnits="userSpaceOnUse"
+      id="lobe-icons-gemini-fill-0"
+      x1="7"
+      x2="11"
+      y1="15.5"
+      y2="12"
+    >
+      <stop stop-color="#08B962"></stop>
+      <stop offset="1" stop-color="#08B962" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient
+      gradientUnits="userSpaceOnUse"
+      id="lobe-icons-gemini-fill-1"
+      x1="8"
+      x2="11.5"
+      y1="5.5"
+      y2="11"
+    >
+      <stop stop-color="#F94543"></stop>
+      <stop offset="1" stop-color="#F94543" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient
+      gradientUnits="userSpaceOnUse"
+      id="lobe-icons-gemini-fill-2"
+      x1="3.5"
+      x2="17.5"
+      y1="13.5"
+      y2="12"
+    >
+      <stop stop-color="#FABC12"></stop>
+      <stop offset=".46" stop-color="#FABC12" stop-opacity="0"></stop>
+    </linearGradient>
+  </defs>
+</svg>
+  `;
+  const svgQwen = `
+<svg
+  t="1761614247284"
+  class="icon"
+  viewBox="0 0 32 32"
+  version="1.1"
+  xmlns="http://www.w3.org/2000/svg"
+  p-id="5205"
+  width="24"
+  height="24"
+>
+  <path
+    d="M255.872 279.808h-109.76a21.12 21.12 0 0 0-18.288 10.528L66.816 396a21.168 21.168 0 0 0 0 21.12L317.12 850.144h121.68l180.768-151.84-363.68-418.496z"
+    fill="#615CED"
+    p-id="5206"
+  ></path>
+  <path
+    d="M182.72 617.76l-54.896 95.04a21.12 21.12 0 0 0 0 21.168l60.992 105.6c3.696 6.56 10.72 10.624 18.256 10.576h231.712L182.672 617.76h0.048z m658.608-211.28l54.848-95.024a21.12 21.12 0 0 0 0-21.152l-60.992-105.6a21.152 21.152 0 0 0-18.24-10.576l-500.208 0.224-60.864 105.36 41.12 232.544 544.336-105.824v0.048z"
+    fill="#615CED"
+    p-id="5207"
+  ></path>
+  <path
+    d="M585.12 174.16l-54.848-95.04A21.12 21.12 0 0 0 512 68.48h-122a20.976 20.976 0 0 0-18.256 10.624l-55.456 96.032-60.4 104.576 329.264-105.552z m-146.288 676.032l54.8 95.056a21.12 21.12 0 0 0 18.352 10.496h122a21.168 21.168 0 0 0 18.24-10.544l249.92-433.312-60.816-105.376-221.952-80.592-180.544 524.224v0.048z"
+    fill="#615CED"
+    p-id="5208"
+  ></path>
+  <path
+    d="M768.08 744.512h109.76a21.136 21.136 0 0 0 18.288-10.576l61.008-105.6a20.992 20.992 0 0 0 0-21.168l-55.456-96.032-60.4-104.624-73.2 338z"
+    fill="#615CED"
+    p-id="5209"
+  ></path>
+  <path
+    d="M452.416 828.656l-243.36 0.928 60.32-105.504 121.856-0.464L145.84 302.64l121.872-0.288L512.848 722.88l-60.448 105.728v0.048z"
+    fill="#FFFFFF"
+    p-id="5210"
+  ></path>
+  <path
+    d="M267.664 302.32l120.832-211.2 61.232 104.96-60.432 105.728 487.248-2-60.768 105.696-486.704 1.984-61.408-105.168z"
+    fill="#FFFFFF"
+    p-id="5211"
+  ></path>
+  <path
+    d="M815.824 405.44l122.464 210.272-121.504 0.512-61.312-105.216L513.6 933.984l-61.184-105.424 241.6-422.56 121.856-0.544h-0.048z"
+    fill="#FFFFFF"
+    p-id="5212"
+  ></path>
+  <path
+    d="M512.848 722.784l181.152-316.768-364.928 1.472 183.776 315.296z"
+    fill="#605BEC"
+    p-id="5213"
+  ></path>
+  <path
+    d="M512.848 722.784L267.712 302.272l12.112-21.12 245.12 420.528-12.08 21.152v-0.048z"
+    fill="#605BEC"
+    p-id="5214"
+  ></path>
+  <path
+    d="M329.072 407.584l486.752-2.032 12.24 21.024-486.752 2.032-12.24-21.024z"
+    fill="#605BEC"
+    p-id="5215"
+  ></path>
+  <path
+    d="M694.048 406.016l-241.6 422.512-24.304 0.08 241.6-422.512 24.32-0.08z"
+    fill="#605BEC"
+    p-id="5216"
+  ></path>
+</svg>
+  `;
+  if (CHAT_TYPE === 'gemini') {
+    return svgGemini;
+  }
+  if (CHAT_TYPE === 'qwen') {
+    return svgQwen;
+  }
   return svgOpenai;
 }
 
@@ -484,7 +639,7 @@ function getManifestContent() {
   `;
 }
 
-function getHtmlContent(modelIds, tavilyKeys) {
+function getHtmlContent(modelIds, tavilyKeys, title) {
   let html = `
 <!DOCTYPE html>
 <html lang="zh-Hans">
@@ -496,7 +651,7 @@ function getHtmlContent(modelIds, tavilyKeys) {
     <title>✨ OpenAI Chat</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="site.webmanifest" />
@@ -2955,7 +3110,7 @@ function getHtmlContent(modelIds, tavilyKeys) {
                 body: JSON.stringify({
                   model: this.selectedModel,
                   messages: messages,
-                  temperature: 0.7,
+                  temperature: 1,
                   stream: true
                 }),
                 signal: this.abortController.signal
@@ -3388,8 +3543,14 @@ function getHtmlContent(modelIds, tavilyKeys) {
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
+  // 控制"联网搜索"复选框的显隐
   if (!tavilyKeys) {
     html = html.replace(`"model-search-label"`, `"hidden"`);
+  }
+  // 替换网页标题
+  if (title) {
+    const regex = new RegExp(TITLE_DEFAULT, 'g');
+    html = html.replace(regex, title);
   }
   return html;
 }
