@@ -2813,7 +2813,14 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               for (let i = 0; i < children.length; i++) {
                 const node = children[i];
 
-                if (node.tagName === 'OL') {
+                // 如果遇到标题标签，重置计数器
+                if (/^H[1-6]$/.test(node.tagName)) {
+                  olCounter.count = 0;
+                  // 递归处理标题内部（虽然通常标题内部不会有列表）
+                  if (node.children.length > 0) {
+                    processNode(node, { count: 0 });
+                  }
+                } else if (node.tagName === 'OL') {
                   // 如果是有序列表
                   if (olCounter.count > 0) {
                     // 不是第一个 ol，需要设置 start 属性
