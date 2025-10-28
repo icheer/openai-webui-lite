@@ -193,7 +193,7 @@ async function handleRequest(request, env = {}) {
     const tavilyKey = getRandomApiKey(TAVILY_KEY_LIST);
     const payload = {
       query: searchKeywords,
-      max_results: 10,
+      max_results: 15,
       include_answer: 'basic',
       auto_parameters: true
     };
@@ -3146,14 +3146,14 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 messages.push({
                   role: 'assistant',
                   content:
-                    '我通过搜索引擎找到了以下信息: \\n' +
-                    '<code>' +
+                    'AI模型通过实时调用Taviy搜索引擎，找到了以下信息: \\n' +
+                    '<pre><code>' +
                     JSON.stringify(searchRes) +
-                    '</code>'
+                    '</code></pre>'
                 });
                 messages.push({
                   role: 'user',
-                  content: '请根据上述信息详细回答我的问题。'
+                  content: '请结合上述搜索结果详细回答我的问题。'
                 });
               }
             }
