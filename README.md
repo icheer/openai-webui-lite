@@ -11,7 +11,7 @@
 > Deno Deploy 部署简单快捷，且在中国境内（及港澳地区）没有边缘节点，因此可以流畅代理请求发往 OpenAI、Gemini 官方 API 而不会因地区原因遭到拒绝。 因此代理上述官方 API 时首选 Deno Deploy 方式部署。
 > 
 > ⚠️ **中国大陆访问注意事项**
-> 由于 Deno Deploy 的 IPv4 地址在中国大陆地区无法直接访问，即使使用自定义域名 CNAME 解析也无法绕过此限制。如需确保中国大陆地区用户正常访问，建议将域名托管至 Cloudflare，并在 DNS 设置中启用代理模式（橙色云朵图标），通过 Cloudflare CDN 进行流量代理，代理至Deno Deploy的IP。
+> 由于 Deno Deploy 的 IPv4 地址在中国大陆地区无法直接访问，即使使用自定义域名 CNAME 解析也无法绕过此限制。如需确保中国大陆地区用户正常访问，建议将域名托管至 Cloudflare，并在 DNS 设置中启用代理模式（橙色云朵图标），通过 Cloudflare CDN 进行流量代理，代理至 Deno Deploy 的 IP。
 
 > 💡 **推荐使用心流AI获取免费API**  
 > 推荐使用阿里巴巴旗下的 [心流AI](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 获取免费的国产开源大模型 API Key。
