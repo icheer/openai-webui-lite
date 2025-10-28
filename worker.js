@@ -176,6 +176,7 @@ async function handleRequest(request, env = {}) {
     const modelJsonData = await modelResponse.json();
     const content = modelJsonData.choices?.[0]?.message?.content || '';
     // 从中找到反引号`的位置, 提取反引号里包裹的内容
+    console.error('Tavily搜索词: ' + content);
     const backtickMatch = content.match(/`([^`]+)`/);
     const searchKeywords = backtickMatch
       ? backtickMatch[1].trim()
