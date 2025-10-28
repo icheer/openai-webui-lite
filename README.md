@@ -7,9 +7,10 @@
 
 一个简单易用的 Deno Deploy / Cloudflare Worker 程序，让您能够快速部署自己的 OpenAI API 代理服务。只需要一个域名和 OpenAI API Key，即可免费为家人朋友提供 AI 问答服务。
 
-> 🎯 **推荐使用 Deno Deploy 部署**  
-> Deno Deploy 部署简单快捷，提供稳定的全球访问，强烈推荐使用 **Deno Deploy** 部署本服务！
-> ⚠️ **中国大陆访问注意事项**  
+> 🎯 **何种情况下推荐使用 Deno Deploy 部署**
+> Deno Deploy 部署简单快捷，且在中国境内（及港澳地区）没有边缘节点，因此可以流畅代理请求发往 OpenAI、Gemini 官方 API 而不会因地区原因遭到拒绝。 因此代理上述官方 API 时首选 Deno Deploy 方式部署。
+> 
+> ⚠️ **中国大陆访问注意事项**
 > 由于 Deno Deploy 的 IPv4 地址在中国大陆地区无法直接访问，即使使用自定义域名 CNAME 解析也无法绕过此限制。如需确保中国大陆地区用户正常访问，建议将域名托管至 Cloudflare，并在 DNS 设置中启用代理模式（橙色云朵图标），通过 Cloudflare CDN 进行流量代理，代理至Deno Deploy的IP。
 
 > 💡 **推荐使用心流AI获取免费API**  
