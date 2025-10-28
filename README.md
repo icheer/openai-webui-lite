@@ -9,6 +9,8 @@
 
 > 🎯 **推荐使用 Deno Deploy 部署**  
 > Deno Deploy 部署简单快捷，提供稳定的全球访问，强烈推荐使用 **Deno Deploy** 部署本服务！
+> ⚠️ **中国大陆访问注意事项**  
+> 由于 Deno Deploy 的 IPv4 地址在中国大陆地区无法直接访问，即使使用自定义域名 CNAME 解析也无法绕过此限制。如需确保中国大陆地区用户正常访问，建议将域名托管至 Cloudflare，并在 DNS 设置中启用代理模式（橙色云朵图标），通过 Cloudflare CDN 进行流量代理，代理至Deno Deploy的IP。
 
 > 💡 **推荐使用心流AI获取免费API**  
 > 推荐使用阿里巴巴旗下的 [心流AI](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 获取免费的国产开源大模型 API Key。
@@ -110,6 +112,8 @@
      - `API_BASE`: OpenAI API 基础地址（可选，默认 `https://api.openai.com`）
      - `DEMO_PASSWORD`: 临时演示密码（可选）
      - `DEMO_MAX_TIMES_PER_HOUR`: 演示密码每小时调用次数限制（可选，默认 15 次）
+     - `TAVILY_KEYS`: 用于启用联网搜索特性
+     - `TITLE`: 用于自定义网站标题及 Favicon
    - 环境变量优先级高于代码中的硬编码值
 
 4. **绑定自定义域名（可选，推荐）**
@@ -123,6 +127,7 @@
    - 访问您的 Deno Deploy 域名（如：`https://your-project.deno.dev`）
    - 或访问您的自定义域名
    - 输入共享密码测试功能
+   - 后续为确保国内免科学访问，需套用Cloudflare CDN
 
 **🛠️ 方式二：Cloudflare Workers（备选）**
 
