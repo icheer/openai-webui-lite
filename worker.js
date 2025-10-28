@@ -1811,7 +1811,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               v-model="apiKey"
               @input="saveApiKey"
               class="api-key-input"
-              placeholder="请输入您的 API Key"
+              placeholder="请输入您的 OpenAI API Key"
               autocomplete="new-password"
             />
           </div>
@@ -2583,7 +2583,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             if (this.isMobile) {
               this.hideSidebar();
             }
-            // this.scrollToBottom();
+            this.scrollToTop();
           },
 
           deleteSession(sessionId) {
@@ -2967,7 +2967,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                       imageDataUrl +
                       '" style="max-width: 100%; height: auto; border-radius: 8px;" />',
                     showConfirmButton: true,
-                    confirmButtonText: '我知道了',
+                    confirmButtonText: '　关闭　',
                     width: isMobile ? '92%' : 'auto',
                     padding: '0.25em 0 2em',
                     customClass: {
@@ -3201,7 +3201,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 });
                 messages.push({
                   role: 'user',
-                  content: '请基于你已经掌握的知识，并结合上述你在搜索引擎获取到的搜索结果，详细回答我的问题。'
+                  content:
+                    '请基于你已经掌握的知识，并结合上述你在搜索引擎获取到的搜索结果，详细回答我的问题。'
                 });
               }
             }
@@ -3536,6 +3537,15 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             });
           },
 
+          scrollToTop() {
+            this.$nextTick(() => {
+              const container = this.$refs.messagesContainer;
+              if (container) {
+                container.scrollTop = 0;
+              }
+            });
+          },
+
           scrollToBottom() {
             this.$nextTick(() => {
               const container = this.$refs.messagesContainer;
@@ -3598,7 +3608,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             Swal.fire({
               title: '关于 OpenAI WebUI Lite',
               confirmButtonText: '　知道了　',
-              confirmButtonColor: '#10a37f',
               width: isMobile ? '90%' : '600px',
               html: \`
                 <div style="text-align: left; padding: 10px;">

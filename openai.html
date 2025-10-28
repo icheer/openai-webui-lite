@@ -1892,7 +1892,7 @@
             if (this.isMobile) {
               this.hideSidebar();
             }
-            // this.scrollToBottom();
+            this.scrollToTop();
           },
 
           deleteSession(sessionId) {
@@ -2276,7 +2276,7 @@
                       imageDataUrl +
                       '" style="max-width: 100%; height: auto; border-radius: 8px;" />',
                     showConfirmButton: true,
-                    confirmButtonText: '我知道了',
+                    confirmButtonText: '　关闭　',
                     width: isMobile ? '92%' : 'auto',
                     padding: '0.25em 0 2em',
                     customClass: {
@@ -2846,6 +2846,15 @@
             });
           },
 
+          scrollToTop() {
+            this.$nextTick(() => {
+              const container = this.$refs.messagesContainer;
+              if (container) {
+                container.scrollTop = 0;
+              }
+            });
+          },
+
           scrollToBottom() {
             this.$nextTick(() => {
               const container = this.$refs.messagesContainer;
@@ -2908,7 +2917,6 @@
             Swal.fire({
               title: '关于 OpenAI WebUI Lite',
               confirmButtonText: '　知道了　',
-              confirmButtonColor: '#10a37f',
               width: isMobile ? '90%' : '600px',
               html: `
                 <div style="text-align: left; padding: 10px;">
