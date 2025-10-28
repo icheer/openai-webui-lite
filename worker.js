@@ -285,10 +285,10 @@ export default {
   }
 };
 
-// Deno Deploy 支持
-if (isDeno) {
-  Deno.serve(handleRequest);
-}
+// // Deno Deploy 支持
+// if (isDeno) {
+//   Deno.serve(handleRequest);
+// }
 
 /**
  * 构建代理请求配置
