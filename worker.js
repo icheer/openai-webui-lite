@@ -2967,7 +2967,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                       imageDataUrl +
                       '" style="max-width: 100%; height: auto; border-radius: 8px;" />',
                     showConfirmButton: true,
-                    confirmButtonText: '　关闭　',
+                    confirmButtonText: '关闭',
                     width: isMobile ? '92%' : 'auto',
                     padding: '0.25em 0 2em',
                     customClass: {
@@ -3607,7 +3607,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const isMobile = this.checkMobile();
             Swal.fire({
               title: '关于 OpenAI WebUI Lite',
-              confirmButtonText: '　知道了　',
+              confirmButtonText: '知道了',
               width: isMobile ? '90%' : '600px',
               html: \`
                 <div style="text-align: left; padding: 10px;">
