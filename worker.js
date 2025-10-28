@@ -98,7 +98,7 @@ async function handleRequest(request, env = {}) {
   }
 
   if (apiPath === '/manifest.json' || apiPath === '/site.webmanifest') {
-    const manifestContent = getManifestContent();
+    const manifestContent = getManifestContent(TITLE);
     return new Response(manifestContent, {
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
@@ -613,12 +613,12 @@ function getSvgContent(chatType) {
   return svgOpenai;
 }
 
-function getManifestContent() {
-  return `
+function getManifestContent(title) {
+  const str = `
 {
-  "name": "OpenAI Chat",
-  "short_name": "OpenAI",
-  "description": "OpenAI Chat - 智能对话助手",
+  "name": "${title},
+  "short_name": "${title}",
+  "description": "${title} - 智能对话助手",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -637,6 +637,7 @@ function getManifestContent() {
   "dir": "ltr"
 }
   `;
+  return str.trim();
 }
 
 function getHtmlContent(modelIds, tavilyKeys, title) {
@@ -1763,7 +1764,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               v-model="apiKey"
               @input="saveApiKey"
               class="api-key-input"
-              placeholder="请输入您的 OpenAI API Key"
+              placeholder="请输入您的 API Key"
               autocomplete="new-password"
             />
           </div>
