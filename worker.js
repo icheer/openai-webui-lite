@@ -13,7 +13,7 @@ function getEnv(key, env = {}) {
     // Node.js 环境
     return process.env[key] || '';
   } else {
-    // Cloudflare Workers 环境，从传入的 env 对象获取
+    // Cloudflare Workers环境，从传入的 env 对象获取
     return env[key] || '';
   }
 }
