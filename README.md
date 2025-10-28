@@ -36,6 +36,8 @@
 - 🌐 **多模型支持** - 支持 GPT-5、GPT-5-Pro 等多个 OpenAI 模型
 - 📸 **分享问答** - 一键生成问答截图，方便社交分享
 - 🏷️ **智能命名** - 根据问答内容自动生成会话标题，便于查找管理
+- 🔍 **联网搜索** - 集成 Tavily 搜索，为 AI 提供实时网络信息
+- 🎨 **自定义标题** - 支持自定义界面标题和 Favicon
 
 ## 🎯 功能说明
 
@@ -52,6 +54,8 @@
 - 历史记录保存在浏览器本地（注意：更换浏览器无法共享历史）
 - 支持角色设定和系统提示词
 - 支持 Markdown 渲染和代码高亮
+- 支持联网搜索：通过 Tavily API 为 AI 提供实时网络信息作为上下文
+- 支持自定义界面标题和 Favicon，打造个性化 AI 助手
 
 ## 🚀 快速开始
 
@@ -62,7 +66,13 @@
    - 访问 [OpenAI Platform](https://platform.openai.com/api-keys)
    - 创建新的 API Key 并妥善保存
 
-2. **准备域名（可选）**
+2. **获取 Tavily API Key（可选，用于联网搜索）**
+
+   - 访问 [Tavily](https://tavily.com/)
+   - 注册账号并获取 API Key
+   - 配置后可在问答时勾选"联网搜索"，为 AI 提供实时网络信息
+
+3. **准备域名（可选）**
    - 拥有一个域名（可以是免费域名）
    - 用于绑定到部署服务
 
@@ -218,10 +228,11 @@ curl -X POST "https://your-domain.com/v1/chat/completions" \
 2. **设置密钥**: 在左侧输入共享密码或完整 API Key
 3. **角色设定**: （可选）设置系统提示词或角色设定
 4. **开始对话**: 选择模型并输入问题
-5. **追问功能**: 在第一个问题得到回答后，可以继续追问一次
-6. **智能命名**: 系统会根据问答内容自动生成会话标题，便于管理查找
-7. **分享问答**: 点击右上角"分享问答"按钮，生成问答截图
-8. **查看历史**: 左侧会自动保存历史会话
+5. **联网搜索**: （可选）勾选"联网搜索"选项，AI 将获取实时网络信息作为回答参考
+6. **追问功能**: 在第一个问题得到回答后，可以继续追问一次
+7. **智能命名**: 系统会根据问答内容自动生成会话标题，便于管理查找
+8. **分享问答**: 点击右上角"分享问答"按钮，生成问答截图
+9. **查看历史**: 左侧会自动保存历史会话
 
 ### 支持的模型
 
@@ -248,6 +259,8 @@ curl -X POST "https://your-domain.com/v1/chat/completions" \
 - `API_BASE`: OpenAI API 基础地址（可选，默认 `https://api.openai.com`）
 - `DEMO_PASSWORD`: 临时演示密码，有调用次数限制（可选）
 - `DEMO_MAX_TIMES_PER_HOUR`: 演示密码每小时最大调用次数（默认 15 次）
+- `TAVILY_KEYS`: Tavily API Key 列表，用于联网搜索功能，多个用逗号分隔（可选）
+- `TITLE`: 自定义 Web 界面标题和 Favicon（可选，默认 `OpenAI Chat`）
 
 **Deno Deploy 环境变量设置：**
 
@@ -259,6 +272,8 @@ curl -X POST "https://your-domain.com/v1/chat/completions" \
    - `API_BASE`: 如 `https://api.openai.com`（可选）
    - `DEMO_PASSWORD`: 演示密码，如 `demo123`（可选）
    - `DEMO_MAX_TIMES_PER_HOUR`: 如 `10`（可选，默认 15）
+   - `TAVILY_KEYS`: Tavily API Key 列表，如 `tvly-key1,tvly-key2`（可选，用于联网搜索）
+   - `TITLE`: 自定义标题，如 `My AI Chat`（可选）
 
 **Cloudflare Workers 环境变量设置：**
 
@@ -291,6 +306,12 @@ const DEMO_PASSWORD = 'demo123';
 
 // 演示密码每小时最大调用次数
 const DEMO_MAX_TIMES_PER_HOUR = 15;
+
+// Tavily API Key 列表 - 用于联网搜索功能（可选）
+const TAVILY_KEYS = 'tvly-key1,tvly-key2';
+
+// 自定义界面标题和 Favicon（可选）
+const TITLE = 'OpenAI Chat';
 ```
 
 ### 配置优先级
@@ -303,6 +324,8 @@ const DEMO_MAX_TIMES_PER_HOUR = 15;
    - `API_BASE`: `https://api.openai.com`
    - `DEMO_PASSWORD`: 默认为空（不开启演示模式）
    - `DEMO_MAX_TIMES_PER_HOUR`: 默认为 `15`
+   - `TAVILY_KEYS`: 默认为空（不开启联网搜索功能）
+   - `TITLE`: 默认为 `OpenAI Chat`
 
 ### 使用说明
 
@@ -317,6 +340,8 @@ const DEMO_MAX_TIMES_PER_HOUR = 15;
 - 希望配置多个 API Key 实现负载均衡
 - 需要统一管理 API Key
 - 需要提供临时演示访问，限制调用次数
+- 需要开启联网搜索功能，为 AI 提供实时网络信息
+- 需要自定义界面标题和 Favicon
 
 ### 密码类型说明
 
@@ -436,6 +461,18 @@ _A: 演示密码 (`DEMO_PASSWORD`) 有调用次数限制，默认每小时最多
 
 **Q: 演示密码的调用次数用完了怎么办？**<br>
 _A: 需要等待下一个小时重置，或者使用正式密码继续访问。管理员可以通过 `DEMO_MAX_TIMES_PER_HOUR` 环境变量调整限制次数。_
+
+**Q: 如何开启联网搜索功能？**<br>
+_A: 在环境变量中配置 `TAVILY_KEYS`，然后在 Web 界面勾选"联网搜索"选项即可。联网搜索会为 AI 提供实时的网络信息作为上下文，提升回答的时效性和准确性。_
+
+**Q: Tavily API Key 如何获取？**<br>
+_A: 访问 [Tavily](https://tavily.com/) 注册账号并获取 API Key。可以配置多个 Key 用逗号分隔，系统会自动轮换使用。_
+
+**Q: 如何自定义界面标题和 Favicon？**<br>
+_A: 通过环境变量 `TITLE` 设置自定义标题，如 `TITLE=My AI Assistant`。标题会同时影响网页标题和 Favicon 的显示样式。_
+
+**Q: TITLE 环境变量是如何影响 Favicon 的？**<br>
+_A: `TITLE` 中包含 Gemini 或 Qwen 字样时（忽略大小写），网站 Favicon 会自动变为相应的模型 Logo，否则 Logo 默认为 OpenAI 的样式。_
 
 ---
 
