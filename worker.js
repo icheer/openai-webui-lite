@@ -2936,8 +2936,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             this.errorMessage = '';
             const userMessage = this.messageInput
               .trim()
-              .replace(new RegExp('<', 'g'), '&lt;')
-              .replace(new RegExp('>', 'g'), '&gt;');
+              .replace(new RegExp('<', 'g'), '&lt;');
             const userImages = [...this.uploadedImages.map(img => img.url)]; // 复制图片URL数组
             this.clearInput();
             this.clearUploadedImages(); // 清空上传的图片
