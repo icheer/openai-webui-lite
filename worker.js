@@ -66,7 +66,7 @@ async function handleRequest(request, env = {}) {
   if (/gemini/i.test(TITLE)) {
     CHAT_TYPE = 'gemini';
   } else if (/qwen/i.test(TITLE)) {
-    CHAT_TYPE = 'QWEN';
+    CHAT_TYPE = 'qwen';
   }
 
   // 更新 demoMemory 的最大次数
