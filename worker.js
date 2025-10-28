@@ -70,7 +70,7 @@ async function handleRequest(request, env = {}) {
   } else if (/qwen/i.test(TITLE)) {
     CHAT_TYPE = 'qwen';
   } else if (/openai/i.test(TITLE)) {
-    CHAT_TYPE = 'openai'
+    CHAT_TYPE = 'openai';
   }
 
   // 更新 demoMemory 的最大次数
@@ -398,7 +398,9 @@ function replaceApiUrl(url) {
   if (!isGemini) {
     return url;
   } else {
-    url = url.replace('/v1/chat', '/v1beta/openai/chat');
+    url = url
+      .replace('/v1/chat', '/v1beta/openai/chat')
+      .replace('/v1/models', '/v1beta/openai/models');
     return url;
   }
 }
