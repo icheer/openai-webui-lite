@@ -651,7 +651,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <title>✨ OpenAI Chat</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="site.webmanifest" />
@@ -1731,6 +1731,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         v-cloak
         v-show="isMobile"
         class="mobile-menu-btn"
+        style="display: none"
         @click="toggleSidebar"
       >
         {{ !showSidebar ? '☰' : '＜' }}
@@ -2297,6 +2298,14 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
         beforeUnmount() {
           window.removeEventListener('resize', this.checkMobile);
+        },
+        watch: {
+          messageInput() {
+            this.autoResizeTextarea();
+          },
+          streamingContent() {
+            this.stickToBottom();
+          }
         },
         methods: {
           initModels() {
@@ -3109,7 +3118,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 body: JSON.stringify({
                   model: this.selectedModel,
                   messages: messages,
-                  temperature: 1,
+                  temperature: 0.7,
                   stream: true
                 }),
                 signal: this.abortController.signal
@@ -3488,6 +3497,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const isMobile = this.checkMobile();
             Swal.fire({
               title: '关于 OpenAI WebUI Lite',
+              confirmButtonText: '　知道了　',
+              confirmButtonColor: '#10a37f',
+              width: isMobile ? '90%' : '600px',
               html: \`
                 <div style="text-align: left; padding: 10px;">
                   <h3 style="margin: 0 0 10px; color: #333;">✨ 应用简介</h3>
@@ -3519,26 +3531,14 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     请合理使用 AI 资源，避免滥用！
                   </p>
                 </div>
-              \`,
-              confirmButtonText: '知道了',
-              confirmButtonColor: '#10a37f',
-              width: isMobile ? '90%' : '600px'
+              \`
             });
-          }
-        },
-        watch: {
-          messageInput() {
-            this.autoResizeTextarea();
-          },
-          streamingContent() {
-            this.stickToBottom();
           }
         }
       }).mount('#app');
     </script>
   </body>
 </html>
-
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);

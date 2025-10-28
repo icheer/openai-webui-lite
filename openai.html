@@ -1088,6 +1088,7 @@
         v-cloak
         v-show="isMobile"
         class="mobile-menu-btn"
+        style="display: none"
         @click="toggleSidebar"
       >
         {{ !showSidebar ? '☰' : '＜' }}
@@ -1654,6 +1655,14 @@
 
         beforeUnmount() {
           window.removeEventListener('resize', this.checkMobile);
+        },
+        watch: {
+          messageInput() {
+            this.autoResizeTextarea();
+          },
+          streamingContent() {
+            this.stickToBottom();
+          }
         },
         methods: {
           initModels() {
@@ -2845,6 +2854,9 @@
             const isMobile = this.checkMobile();
             Swal.fire({
               title: '关于 OpenAI WebUI Lite',
+              confirmButtonText: '　知道了　',
+              confirmButtonColor: '#10a37f',
+              width: isMobile ? '90%' : '600px',
               html: `
                 <div style="text-align: left; padding: 10px;">
                   <h3 style="margin: 0 0 10px; color: #333;">✨ 应用简介</h3>
@@ -2876,19 +2888,8 @@
                     请合理使用 AI 资源，避免滥用！
                   </p>
                 </div>
-              `,
-              confirmButtonText: '知道了',
-              confirmButtonColor: '#10a37f',
-              width: isMobile ? '90%' : '600px'
+              `
             });
-          }
-        },
-        watch: {
-          messageInput() {
-            this.autoResizeTextarea();
-          },
-          streamingContent() {
-            this.stickToBottom();
           }
         }
       }).mount('#app');
