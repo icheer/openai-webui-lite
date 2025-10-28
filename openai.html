@@ -2151,7 +2151,52 @@
 
           renderMarkdown(text) {
             if (!text) return '';
-            return this.converter.makeHtml(text);
+            let html = this.converter.makeHtml(text);
+            // 修复有序列表的连续编号问题
+            html = this.fixOrderedListNumbers(html);
+
+            return html;
+          },
+
+          fixOrderedListNumbers(html) {
+            // 创建一个临时容器来解析 HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            // 追踪同一层级的 ol 计数器
+            const processNode = (parentNode, olCounter = { count: 0 }) => {
+              const children = Array.from(parentNode.children);
+
+              for (let i = 0; i < children.length; i++) {
+                const node = children[i];
+
+                if (node.tagName === 'OL') {
+                  // 如果是有序列表
+                  if (olCounter.count > 0) {
+                    // 不是第一个 ol，需要设置 start 属性
+                    node.setAttribute('start', olCounter.count + 1);
+                  }
+
+                  // 计算这个 ol 中有多少个 li
+                  const liCount = node.querySelectorAll(':scope > li').length;
+                  olCounter.count += liCount;
+
+                  // 递归处理 ol 内部的子节点，使用新的计数器
+                  processNode(node, { count: 0 });
+                } else if (node.tagName === 'UL') {
+                  // 无序列表不影响计数，但需要递归处理内部
+                  processNode(node, olCounter);
+                } else if (node.children.length > 0) {
+                  // 其他有子节点的元素（如 div, p 等），继续递归
+                  processNode(node, olCounter);
+                }
+              }
+            };
+
+            // 从根节点开始处理
+            processNode(tempDiv);
+
+            return tempDiv.innerHTML;
           },
 
           copyToClipboard(text) {
