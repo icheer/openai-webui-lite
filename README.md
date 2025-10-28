@@ -7,18 +7,17 @@
 
 一个简单易用的 Deno Deploy / Cloudflare Worker 程序，让您能够快速部署自己的 OpenAI API 代理服务。只需要一个域名和 OpenAI API Key，即可免费为家人朋友提供 AI 问答服务。
 
-> 🎯 **何种情况下推荐使用 Deno Deploy 部署**
-> Deno Deploy 部署简单快捷，且在中国境内（及港澳地区）没有边缘节点，因此可以流畅代理请求发往 OpenAI、Gemini 官方 API 而不会因地区原因遭到拒绝。 因此代理上述官方 API 时首选 Deno Deploy 方式部署。
-> 
-> ⚠️ **中国大陆访问注意事项**
+> 🎯 **何种情况下推荐使用 Deno Deploy 部署**  
+> Deno Deploy 部署简单快捷，且在中国境内（及港澳地区）没有边缘节点，因此可以流畅代理请求发往 OpenAI、Gemini 官方 API 而不会因地区原因遭到拒绝。 因此代理上述官方 API 时首选 Deno Deploy 方式部署。  
+> ⚠️ **中国大陆访问注意事项**  
 > 由于 Deno Deploy 的 IPv4 地址在中国大陆地区无法直接访问，即使使用自定义域名 CNAME 解析也无法绕过此限制。如需确保中国大陆地区用户正常访问，建议将域名托管至 Cloudflare，并在 DNS 设置中启用代理模式（橙色云朵图标），通过 Cloudflare CDN 进行流量代理，代理至 Deno Deploy 的 IP。
 
 > 💡 **推荐使用心流AI获取免费API**  
 > 推荐使用阿里巴巴旗下的 [心流AI](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 获取免费的国产开源大模型 API Key。
 > 
 > - **API文档**: [https://platform.iflow.cn/docs/](https://platform.iflow.cn/docs/)
-> - **BaseURL**: `https://apis.iflow.cn`
-> - **API Key**: 在 [心流 - 我的账户](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 注册后申请
+> - **API_BASE**: `https://apis.iflow.cn`
+> - **API_KEYS**: 在 [心流 - 我的账户](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 注册后申请
 > - **可用模型**: Qwen3-Max、Qwen3-Coder-Plus、GLM-4.6、Kimi-K2、DeepSeek-V3.2-Exp、DeepSeek-R1 等国产大模型 ([完整列表](https://platform.iflow.cn/models))
 > - **注意事项**: 
 >   - 心流的 API Key 会在一段时间后自动过期（防滥用措施），过期后需在设置页面手动重置
