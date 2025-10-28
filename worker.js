@@ -65,6 +65,8 @@ async function handleRequest(request, env = {}) {
   let CHAT_TYPE = 'openai';
   if (/gemini/i.test(TITLE)) {
     CHAT_TYPE = 'gemini';
+  } else if (/claude/i.test(TITLE)) {
+    CHAT_TYPE = 'claude';
   } else if (/qwen/i.test(TITLE)) {
     CHAT_TYPE = 'qwen';
   }
