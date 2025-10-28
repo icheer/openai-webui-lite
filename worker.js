@@ -92,7 +92,7 @@ async function handleRequest(request, env = {}) {
     return new Response(svgContent, {
       headers: {
         'Content-Type': 'image/svg+xml',
-        'Cache-Control': 'public, max-age=43200' // 缓存12小时
+        'Cache-Control': 'public, max-age=432' // 缓存12小时
       }
     });
   }
@@ -449,7 +449,7 @@ function getSvgContent(chatType) {
 <svg
   t="1761563068979"
   class="icon"
-  viewBox="0 0 32 32"
+  viewBox="0 0 1024 1024"
   version="1.1"
   xmlns="http://www.w3.org/2000/svg"
   p-id="2192"
@@ -540,7 +540,7 @@ function getSvgContent(chatType) {
 <svg
   t="1761614247284"
   class="icon"
-  viewBox="0 0 32 32"
+  viewBox="0 0 1024 1024"
   version="1.1"
   xmlns="http://www.w3.org/2000/svg"
   p-id="5205"
