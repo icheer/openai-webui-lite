@@ -444,7 +444,7 @@ function getTavilyPrompt(query) {
   return str.trim();
 }
 
-function getSvgContent() {
+function getSvgContent(chatType) {
   const svgOpenai = `
 <svg
   t="1761563068979"
@@ -604,10 +604,10 @@ function getSvgContent() {
   ></path>
 </svg>
   `;
-  if (CHAT_TYPE === 'gemini') {
+  if (chatType === 'gemini') {
     return svgGemini;
   }
-  if (CHAT_TYPE === 'qwen') {
+  if (chatType === 'qwen') {
     return svgQwen;
   }
   return svgOpenai;
