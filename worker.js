@@ -721,7 +721,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <script>
       var isWechat = new RegExp('wechat', 'i').test(window.navigator.userAgent);
       if (isWechat && document.title) {
-        document.title = '✨' + document.title;
+        document.title = '✨ ' + document.title;
       }
       // IndexedDB 封装
       class OpenaiDB {
