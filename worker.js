@@ -3232,7 +3232,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 messages.push({
                   role: 'user',
                   content:
-                    '请基于你已经掌握的知识，并结合上述你在搜索引擎获取到的搜索结果，详细回答我的问题。'
+                    '现在真实世界的时间是' +
+                    new Date().toISOString() +
+                    '。请基于你已经掌握的知识，并结合上述你在搜索引擎获取到的搜索结果，详细回答我的问题。'
                 });
               }
             }
@@ -3690,6 +3692,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
