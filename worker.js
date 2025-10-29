@@ -375,7 +375,6 @@ function getLiteModelId(modelIds) {
     '-k2',
     '-v3',
     '-r1',
-    '-v3',
     '-haiku',
     'gpt'
   ];
@@ -3490,7 +3489,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               '-k2',
               '-v3',
               '-r1',
-              '-v3',
               '-haiku',
               'gpt'
             ];
@@ -3514,7 +3512,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 model: summaryModel,
                 messages: messages,
                 temperature: 0.7,
-                max_tokens: 100
+                max_tokens: 300
               })
             })
               .then(response => {
