@@ -719,6 +719,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       href="https://unpkg.com/github-markdown-css/github-markdown-light.css"
     />
     <script>
+      var isWechat = new RegExp('wechat', 'i').test(window.navigator.userAgent);
+      if (isWechat && document.title) {
+        document.title = '✨' + document.title;
+      }
       // IndexedDB 封装
       class OpenaiDB {
         constructor() {

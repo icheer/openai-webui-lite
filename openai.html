@@ -28,6 +28,10 @@
       href="https://unpkg.com/github-markdown-css/github-markdown-light.css"
     />
     <script>
+      var isWechat = new RegExp('wechat', 'i').test(window.navigator.userAgent);
+      if (isWechat && document.title) {
+        document.title = '✨' + document.title;
+      }
       // IndexedDB 封装
       class OpenaiDB {
         constructor() {
@@ -2579,7 +2583,10 @@
                         const regThinkStart = new RegExp('<think>');
                         const regThinkEnd = new RegExp('</think>');
                         delta = delta
-                          .replace(regThinkStart, '<blockquote style="font-size: 0.75em">')
+                          .replace(
+                            regThinkStart,
+                            '<blockquote style="font-size: 0.75em">'
+                          )
                           .replace(regThinkEnd, '</blockquote>');
                         if (delta) {
                           const shouldScroll = !this.streamingContent;
