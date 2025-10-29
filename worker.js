@@ -2369,8 +2369,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 .map(id => id.trim())
                 .filter(id => id)
                 .map(id => {
-                  if (id.includes(':')) {
-                    const [value, label] = id.split(':').map(s => s.trim());
+                  if (id.includes('=')) {
+                    const [value, label] = id.split('=').map(s => s.trim());
                     return { value, label };
                   }
                   const parts = id.split('-');
@@ -3274,7 +3274,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                         const regThinkStart = new RegExp('<think>');
                         const regThinkEnd = new RegExp('</think>');
                         delta = delta
-                          .replace(regThinkStart, '<blockquote style="font-size: 0.75em">')
+                          .replace(
+                            regThinkStart,
+                            '<blockquote style="font-size: 0.75em">'
+                          )
                           .replace(regThinkEnd, '</blockquote>');
                         if (delta) {
                           const shouldScroll = !this.streamingContent;

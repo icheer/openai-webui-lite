@@ -1678,8 +1678,8 @@
                 .map(id => id.trim())
                 .filter(id => id)
                 .map(id => {
-                  if (id.includes(':')) {
-                    const [value, label] = id.split(':').map(s => s.trim());
+                  if (id.includes('=')) {
+                    const [value, label] = id.split('=').map(s => s.trim());
                     return { value, label };
                   }
                   const parts = id.split('-');
