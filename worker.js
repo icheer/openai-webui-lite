@@ -1551,6 +1551,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           vertical-align: middle;
           white-space: nowrap;
           max-width: 13em;
+          padding-bottom: 1px;
           overflow: hidden;
           text-overflow: ellipsis;
         }
