@@ -1807,6 +1807,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             <label
               for="apiKey"
               style="display: block; margin-bottom: 8px; font-weight: 500"
+              @dblclick="reloadPage()"
               >API Key:</label
             >
             <input
@@ -2375,6 +2376,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   }
                   const parts = id.split('-');
                   parts.forEach((part, index) => {
+                    if (part.includes('/')) {
+                      const idx = part.indexOf('/');
+                      part =
+                        part.slice(0, idx + 1) +
+                        (part.charAt(idx + 1) || '').toUpperCase() +
+                        part.slice(idx + 2);
+                    }
                     parts[index] = part.charAt(0).toUpperCase() + part.slice(1);
                   });
                   return {
@@ -2383,6 +2391,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   };
                 });
             }
+          },
+          reloadPage() {
+            location.reload();
           },
           // 备用的花括号解析方法，用于处理特殊情况
           parseWithBraceMethod(inputBuffer) {
