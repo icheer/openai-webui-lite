@@ -2494,6 +2494,8 @@
             }
 
             // 这里根据最新的问句, 调用/search接口查询语料
+            let searchQuery = '';
+            let searchResultsCount = 0;
             if (this.needSearch) {
               const query = session.question2 || session.question;
               const searchRes = await fetch('/search', {
@@ -2515,6 +2517,8 @@
                   const { url, score, raw_content, ...rest } = i;
                   return { ...rest };
                 });
+                searchQuery = searchRes.query || '';
+                searchResultsCount = searchRes.results.length;
                 messages.push({
                   role: 'assistant',
                   content:
@@ -2570,6 +2574,15 @@
               while (true) {
                 const { done, value } = await reader.read();
 
+                // 显示搜索结果数量（如果有）
+                if (searchResultsCount > 0 && !this.streamingContent) {
+                  this.streamingContent =
+                    '> 联网搜索：「' +
+                    searchQuery +
+                    '」\\n> \\n> AI模型通过实时调用Taviy搜索引擎，找到了 ' +
+                    searchResultsCount +
+                    ' 条相关信息。\\n\\n';
+                }
                 if (done) break;
 
                 buffer += decoder.decode(value, { stream: true });
