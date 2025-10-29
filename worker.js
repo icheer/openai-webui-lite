@@ -1544,6 +1544,15 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           width: 24px;
           height: 24px;
         }
+
+        .content-section > h4 small {
+          position: relative;
+          display: inline-block;
+          white-space: nowrap;
+          max-width: 12em;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
 
       .empty-state {
