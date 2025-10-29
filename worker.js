@@ -373,7 +373,7 @@ function getLiteModelId(modelIds) {
     '-flash',
     '-4o',
     '-k2',
-    '-v3.2',
+    '-v3',
     '-r1',
     '-v3',
     '-haiku',
@@ -3485,16 +3485,25 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               '-mini',
               '-nano',
               '-lite',
+              '-flash',
+              '-4o',
               '-k2',
-              '-v3.2',
+              '-v3',
               '-r1',
-              '-haiku'
+              '-v3',
+              '-haiku',
+              'gpt'
             ];
-            let summaryModel = this.availableModels.find(m => {
-              return summaryParts.some(part => m.value.includes(part));
-            });
-            summaryModel =
-              (summaryModel && summaryModel.value) || this.selectedModel;
+            let summaryModel = this.selectedModel;
+            for (const part of summaryParts) {
+              const item = this.availableModels.find(m =>
+                m.value.toLowerCase().includes(part)
+              );
+              if (item) {
+                summaryModel = item.value;
+                break;
+              }
+            }
             fetch('/v1/chat/completions', {
               method: 'POST',
               headers: {
