@@ -3285,7 +3285,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   this.streamingContent =
                     '> 联网搜索：「' +
                     searchQuery +
-                    '」\\n> \\n> AI模型通过实时调用Taviy搜索引擎，找到了 ' +
+                    '」\\n> \\n> AI 模型通过实时调用 Taviy 搜索引擎，找到了 ' +
                     searchResultsCount +
                     ' 条相关信息。\\n\\n';
                 }
