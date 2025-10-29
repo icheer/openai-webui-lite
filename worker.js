@@ -3471,16 +3471,12 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const messages = [
               {
                 role: 'user',
-                content: question
-              },
-              {
-                role: 'assistant',
-                content: answer
-              },
-              {
-                role: 'user',
                 content:
-                  '请为以上的一问一答生成一个简短的摘要，概括对话的主题，12字以内（不要有任何开场白、解释说明、结尾总结，也不要任何格式，句中可以包含标点符号，但不要以标点符号结尾）'
+                  '# 请为以下的一问一答生成一个简短的摘要，概括对话的主题，12字以内（不要有任何开场白、解释说明、结尾总结，也不要任何格式，句中可以包含标点符号，但不要以标点符号结尾）\\n\\n---\\n<pre><code>[问题]:\\n' +
+                  question +
+                  '\\n\\n[回答]:\\n' +
+                  answer +
+                  '</code></pre>'
               }
             ];
 
@@ -3694,7 +3690,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
-
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
