@@ -1548,6 +1548,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         .content-section > h4 small {
           position: relative;
           display: inline-block;
+          vertical-align: middle;
           white-space: nowrap;
           max-width: 13em;
           overflow: hidden;
