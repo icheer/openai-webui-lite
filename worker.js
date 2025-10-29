@@ -197,7 +197,7 @@ async function handleRequest(request, env = {}) {
     const tavilyKey = getRandomApiKey(TAVILY_KEY_LIST);
     const payload = {
       query: searchKeywords,
-      max_results: 15,
+      max_results: 20,
       include_answer: 'basic',
       auto_parameters: true
     };
