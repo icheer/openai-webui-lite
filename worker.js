@@ -3224,7 +3224,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 messages.push({
                   role: 'assistant',
                   content:
-                    'AI模型通过实时调用Taviy搜索引擎，找到了以下信息: \\n' +
+                    'AI 模型通过实时调用 Taviy 搜索引擎，找到了以下信息: \\n' +
                     '<pre><code>' +
                     JSON.stringify(searchRes) +
                     '</code></pre>'
@@ -3233,7 +3233,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   role: 'user',
                   content:
                     '现在真实世界的时间是' +
-                    new Date().toISOString() +
+                    new Date().toDateString() +
+                    ' ' +
+                    new Date().toTimeString() +
                     '。请基于你已经掌握的知识，并结合上述你在搜索引擎获取到的搜索结果，详细回答我的问题。'
                 });
               }
