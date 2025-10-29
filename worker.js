@@ -96,7 +96,7 @@ async function handleRequest(request, env = {}) {
     return new Response(svgContent, {
       headers: {
         'Content-Type': 'image/svg+xml',
-        'Cache-Control': 'public, max-age=432' // 缓存12小时
+        'Cache-Control': 'public, max-age=43200' // 缓存12小时
       }
     });
   }
