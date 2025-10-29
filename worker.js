@@ -3223,7 +3223,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 messages.push({
                   role: 'assistant',
                   content:
-                    'AI 模型通过实时调用 Taviy 搜索引擎，找到了以下信息: \\n' +
+                    'AI 模型通过实时调用 Tavily 搜索引擎，找到了以下信息: \\n' +
                     '<pre><code>' +
                     JSON.stringify(searchRes) +
                     '</code></pre>'
@@ -3284,7 +3284,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   this.streamingContent =
                     '> 联网搜索：「' +
                     searchQuery +
-                    '」\\n> \\n> AI 模型通过实时调用 Taviy 搜索引擎，找到了 ' +
+                    '」\\n> \\n> AI 模型通过实时调用 Tavily 搜索引擎，找到了 ' +
                     searchResultsCount +
                     ' 条相关信息。\\n\\n';
                 }
@@ -3697,6 +3697,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
