@@ -1981,7 +1981,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               >
                 <h4>
                   <span>
-                    问题
+                    <span>问题</span>
                     <small v-if="currentSession.createdAt"
                       >&emsp;{{ new
                       Date(currentSession.createdAt).toLocaleString() }}</small
@@ -2031,7 +2031,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               >
                 <h4>
                   <span>
-                    回答
+                    <span>回答</span>
                     <small v-if="currentSession.model"
                       >&emsp;{{ getModelName(currentSession.model) }}</small
                     >
@@ -2066,7 +2066,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               >
                 <h4>
                   <span>
-                    追问
+                    <span>追问</span>
                     <small v-if="currentSession.createdAt2"
                       >&emsp;{{ new
                       Date(currentSession.createdAt2).toLocaleString() }}</small
@@ -2116,7 +2116,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               >
                 <h4>
                   <span>
-                    回答
+                    <span>回答</span>
                     <small v-if="currentSession.model2"
                       >&emsp;{{ getModelName(currentSession.model2) }}</small
                     >
