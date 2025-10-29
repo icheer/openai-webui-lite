@@ -3273,7 +3273,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               this.isStreaming = true;
 
               const reader = response.body.getReader();
-              const decoder = new TextDecoder();
+              const decoder = new TextDecoder('utf-8', {
+                fatal: false,
+                ignoreBOM: true
+              });
               let buffer = '';
 
               while (true) {
@@ -3288,7 +3291,18 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     searchResultsCount +
                     ' 条相关信息。\\n\\n';
                 }
-                if (done) break;
+                if (done) {
+                  // 处理最后可能残留的不完整字节
+                  if (buffer.trim()) {
+                    const finalText = decoder.decode(new Uint8Array(), {
+                      stream: false
+                    });
+                    if (finalText) {
+                      buffer += finalText;
+                    }
+                  }
+                  break;
+                }
 
                 buffer += decoder.decode(value, { stream: true });
 
@@ -3309,6 +3323,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
                       if (data.choices && data.choices[0].delta.content) {
                         let delta = data.choices[0].delta.content;
+
+                        // 清理可能的替换字符（乱码）
+                        delta = delta.replace(/\uFFFD/g, '');
+
                         const regThinkStart = new RegExp('<think>');
                         const regThinkEnd = new RegExp('</think>');
                         delta = delta
@@ -3697,7 +3715,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
-
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
