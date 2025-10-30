@@ -1754,7 +1754,8 @@
             abortController: null,
             uploadedImages: [], // 待发送的图片列表 [{ url: string, file: File }]
             isUploadingImage: false,
-            needSearch: false
+            needSearch: false,
+            searchRes: null
           };
         },
         computed: {
@@ -2494,25 +2495,31 @@
             let searchRes = sessionStorage.getItem(
               'search_' + encodeURIComponent(query)
             );
-            if (!searchRes) return;
-            searchRes = JSON.parse(searchRes);
-            // 获取渲染后的 HTML
-            const template = this.$refs.searchResTemplate;
-            if (!template) return;
-            const htmlContent = template.innerHTML;
-            // 显示弹窗
-            Swal.fire({
-              title: '联网搜索详情',
-              html: htmlContent,
-              width: this.isMobile ? '95%' : '800px',
-              showConfirmButton: true,
-              confirmButtonText: '关闭',
-              showCancelButton: false,
-              reverseButtons: true,
-              customClass: {
-                popup: 'search-results-popup',
-                htmlContainer: 'search-results-content'
-              }
+            if (!searchRes) {
+              this.searchRes = null;
+              return;
+            } else {
+              searchRes = JSON.parse(searchRes);
+              this.searchRes = searchRes;
+            }
+            this.$nextTick(() => {
+              const template = this.$refs.searchResTemplate;
+              if (!template) return;
+              const htmlContent = template.innerHTML;
+              // 显示弹窗
+              Swal.fire({
+                title: '联网搜索详情',
+                html: htmlContent,
+                width: this.isMobile ? '95%' : '800px',
+                showConfirmButton: true,
+                confirmButtonText: '关闭',
+                showCancelButton: false,
+                reverseButtons: true,
+                customClass: {
+                  popup: 'search-results-popup',
+                  htmlContainer: 'search-results-content'
+                }
+              });
             });
           },
 
