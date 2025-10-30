@@ -3709,7 +3709,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               })
                 .then(res => res.json())
                 .catch(() => ({}));
-              this.searchRes = searchRes;
+              this.searchRes = JSON.parse(JSON.stringify(searchRes));
               const hasResult =
                 searchRes.results &&
                 searchRes.results.length &&
