@@ -1,5 +1,5 @@
 const isDeno = typeof Deno !== 'undefined';
-const isCf = 
+const isCf =
   !isDeno &&
   typeof Request !== 'undefined' &&
   typeof Request.prototype !== 'undefined';
@@ -3165,12 +3165,12 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
               // 检测是否是缩进的列表项（以2个或4个空格+列表符号开头）
               // 匹配格式: "  - " 或 "    - " 或 "  * " 或 "    * "
-              const indentedListMatch = line.match(/^( {2,4})([*\-+]) /);
+              const indentedListMatch = line.match(/^( {2,4})([*\\-+]) /);
 
               if (indentedListMatch) {
                 const indent = indentedListMatch[1];
                 const marker = indentedListMatch[2];
-                const content = line.slice(indent.length + 2); // +2 是列表符号和空格
+                const content = line.slice(indent.length + 2) || ''; // +2 是列表符号和空格
 
                 // 将2个空格的缩进转换为4个空格（Showdown 需要4个空格才能识别为子列表）
                 if (indent.length === 2) {
@@ -3969,6 +3969,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
