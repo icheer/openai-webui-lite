@@ -2467,7 +2467,6 @@
               title: '联网搜索详情',
               html: htmlContent,
               width: this.isMobile ? '95%' : '800px',
-              padding: '0.25em 0 2em',
               showConfirmButton: true,
               confirmButtonText: '关闭',
               showCancelButton: false,
@@ -2521,16 +2520,16 @@
                 Swal.fire({
                   title: isMobile ? '长按保存图片' : '右键复制图片',
                   html:
-                    '<img src="' +
+                    '<div style="max-height: 70vh; overflow-y: auto;"><img src="' +
                     imageDataUrl +
-                    '" style="max-width: 100%; height: auto; border-radius: 8px;" />',
+                    '" style="max-width: 100%; height: auto; border-radius: 8px;" /></div>',
                   showConfirmButton: true,
                   confirmButtonText: '关闭',
                   showCancelButton: true,
                   cancelButtonText: '下载',
                   reverseButtons: true,
                   width: isMobile ? '92%' : 'auto',
-                  padding: '0.25em 0 2em',
+                  padding: '0.25em 0 1em',
                   customClass: {
                     htmlContainer: 'swal-image-container'
                   }
