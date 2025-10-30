@@ -3469,9 +3469,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const template = this.$refs.searchResTemplate;
             if (!template) return;
             const htmlContent = template.innerHTML;
-            const query = searchRes.query;
-            const answer = searchRes.answer;
-            const results = searchRes.results || [];
             // 显示弹窗
             Swal.fire({
               title: '联网搜索详情',
