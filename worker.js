@@ -649,6 +649,7 @@ function getLiteModelId(modelIds) {
     '-nano',
     '-lite',
     '-flash',
+    '-instruct',
     '-4o',
     '-k2',
     '-v3',
@@ -3152,6 +3153,41 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             return html;
           },
 
+          // 预处理 Markdown 文本，修复嵌套列表的缩进问题
+          preprocessMarkdown(text) {
+            if (!text) return '';
+
+            const lines = text.split('\n');
+            const processedLines = [];
+
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+
+              // 检测是否是缩进的列表项（以2个或4个空格+列表符号开头）
+              // 匹配格式: "  - " 或 "    - " 或 "  * " 或 "    * "
+              const indentedListMatch = line.match(/^(\s{2,4})([*\-+])\s/);
+
+              if (indentedListMatch) {
+                const indent = indentedListMatch[1];
+                const marker = indentedListMatch[2];
+                const content = line.slice(indent.length + 2); // +2 是列表符号和空格
+
+                // 将2个空格的缩进转换为4个空格（Showdown 需要4个空格才能识别为子列表）
+                if (indent.length === 2) {
+                  processedLines.push(`    ${marker} ${content}`);
+                } else {
+                  // 已经是4个空格，保持不变
+                  processedLines.push(line);
+                }
+              } else {
+                // 不是缩进列表项，保持原样
+                processedLines.push(line);
+              }
+            }
+
+            return processedLines.join('\n');
+          },
+
           fixOrderedListNumbers(html) {
             // 创建一个临时容器来解析 HTML
             const tempDiv = document.createElement('div');
@@ -3617,7 +3653,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
               // 流式完成
               const answerKey = session.question2 ? 'answer2' : 'answer';
-              this.currentSession[answerKey] = this.streamingContent;
+              // 预处理 Markdown 文本，修复嵌套列表问题
+              const processedContent = this.preprocessMarkdown(
+                this.streamingContent
+              );
+              this.currentSession[answerKey] = processedContent;
               this.saveData();
             } catch (error) {
               console.error('Error:', error);
