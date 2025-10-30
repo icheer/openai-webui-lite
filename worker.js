@@ -3174,7 +3174,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
                 // 将2个空格的缩进转换为4个空格（Showdown 需要4个空格才能识别为子列表）
                 if (indent.length === 2) {
-                  processedLines.push(`    ${marker} ${content}`);
+                  processedLines.push('    ' + marker + ' ' + content);
                 } else {
                   // 已经是4个空格，保持不变
                   processedLines.push(line);
