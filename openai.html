@@ -2188,7 +2188,7 @@
           preprocessMarkdown(text) {
             if (!text) return '';
 
-            const lines = text.split('\n');
+            const lines = text.split('\\n');
             const processedLines = [];
 
             for (let i = 0; i < lines.length; i++) {
@@ -2196,7 +2196,7 @@
 
               // 检测是否是缩进的列表项（以2个或4个空格+列表符号开头）
               // 匹配格式: "  - " 或 "    - " 或 "  * " 或 "    * "
-              const indentedListMatch = line.match(/^(\s{2,4})([*\-+])\s/);
+              const indentedListMatch = line.match(/^( {2,4})([*\-+]) /);
 
               if (indentedListMatch) {
                 const indent = indentedListMatch[1];
