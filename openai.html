@@ -2767,62 +2767,19 @@
             const session = this.currentSession;
             if (!session || !session.question || !session.answer) return;
             if (session.summary && session.question2) return;
-            let { id, question, answer } = session;
-            question =
-              question.length <= 300
-                ? question
-                : question.slice(0, 150) + '......' + question.slice(-150);
-            answer =
-              answer.length <= 300
-                ? answer
-                : answer.slice(0, 150) + '......' + answer.slice(-150);
-
-            const messages = [
-              {
-                role: 'user',
-                content:
-                  '# 请为以下的一问一答生成一个简短的摘要，概括对话的主题，12字以内（不要有任何开场白、解释说明、结尾总结，也不要任何格式，句中可以包含标点符号，但不要以标点符号结尾）\\n\\n---\\n<pre><code>[问题]:\\n' +
-                  question +
-                  '\\n\\n[回答]:\\n' +
-                  answer +
-                  '</code></pre>'
-              }
-            ];
+            const { id, question, answer } = session;
 
             await this.sleep(150);
-            const summaryParts = [
-              '-mini',
-              '-nano',
-              '-lite',
-              '-flash',
-              '-4o',
-              '-k2',
-              '-v3',
-              '-r1',
-              '-haiku',
-              'gpt'
-            ];
-            let summaryModel = this.selectedModel;
-            for (const part of summaryParts) {
-              const item = this.availableModels.find(m =>
-                m.value.toLowerCase().includes(part)
-              );
-              if (item) {
-                summaryModel = item.value;
-                break;
-              }
-            }
-            fetch('/v1/chat/completions', {
+
+            fetch('/summarize', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 Authorization: 'Bearer ' + this.apiKey
               },
               body: JSON.stringify({
-                model: summaryModel,
-                messages: messages,
-                temperature: 0.7,
-                max_tokens: 300
+                question: question,
+                answer: answer
               })
             })
               .then(response => {
@@ -2834,27 +2791,22 @@
                 return response.json();
               })
               .then(async data => {
-                if (
-                  data.choices &&
-                  data.choices[0] &&
-                  data.choices[0].message
-                ) {
-                  let summary = data.choices[0].message.content || '';
-                  if (summary) {
-                    const item = this.sessions.find(s => s.id === id);
-                    if (item) {
-                      if (
-                        summary.endsWith('。') ||
-                        summary.endsWith('！') ||
-                        summary.endsWith('？')
-                      ) {
-                        summary = summary.slice(0, -1);
-                      }
-                      item.summary = summary;
-                      this.sleep(1000).then(() => {
-                        this.saveData();
-                      });
+                if (data.success && data.summary) {
+                  let summary = data.summary.trim();
+                  const item = this.sessions.find(s => s.id === id);
+                  if (item) {
+                    // 移除结尾的标点符号
+                    if (
+                      summary.endsWith('。') ||
+                      summary.endsWith('！') ||
+                      summary.endsWith('？')
+                    ) {
+                      summary = summary.slice(0, -1);
                     }
+                    item.summary = summary;
+                    this.sleep(1000).then(() => {
+                      this.saveData();
+                    });
                   }
                 } else {
                   throw new Error('未能生成摘要');

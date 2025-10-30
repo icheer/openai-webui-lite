@@ -219,6 +219,55 @@ async function handleRequest(request, env = {}) {
     };
   }
 
+  /**
+   * 验证并处理 API Key
+   * @param {string} apiKey - 原始 API Key
+   * @param {number} demoIncrement - Demo 密码的计数增量，默认为 1
+   * @returns {Promise<{valid: boolean, apiKey: string, error?: Response}>}
+   */
+  async function validateAndProcessApiKey(apiKey, demoIncrement = 1) {
+    if (!apiKey) {
+      return {
+        valid: false,
+        apiKey: '',
+        error: createErrorResponse(
+          'Missing API key. Provide via ?key= parameter or Authorization header',
+          401
+        )
+      };
+    }
+
+    // 检查是否是共享密码
+    if (apiKey === SECRET_PASSWORD) {
+      return {
+        valid: true,
+        apiKey: getNextApiKey(API_KEY_LIST)
+      };
+    }
+
+    // 检查是否是临时演示密码
+    if (apiKey === DEMO_PASSWORD && DEMO_PASSWORD) {
+      const result = await checkAndUpdateDemoCounter(demoIncrement);
+      if (!result.allowed) {
+        return {
+          valid: false,
+          apiKey: '',
+          error: createErrorResponse(result.message, 429)
+        };
+      }
+      return {
+        valid: true,
+        apiKey: getNextApiKey(API_KEY_LIST)
+      };
+    }
+
+    // 其他情况，使用原始 API Key
+    return {
+      valid: true,
+      apiKey: apiKey
+    };
+  }
+
   const url = new URL(request.url);
   const apiPath = url.pathname;
   const apiMethod = request.method.toUpperCase();
@@ -288,18 +337,10 @@ async function handleRequest(request, env = {}) {
     if (!query) {
       return createErrorResponse('Missing query parameter', 400);
     }
-    if (!apiKey) {
-      return createErrorResponse(
-        'Missing API key. Provide via ?key= parameter or Authorization header',
-        401
-      );
-    } else if (![DEMO_PASSWORD, SECRET_PASSWORD].includes(apiKey)) {
-      return createErrorResponse('Invalid API key. Provide a valid key.', 403);
-    } else if (apiKey === DEMO_PASSWORD) {
-      const result = await checkAndUpdateDemoCounter(0.1);
-      if (!result.allowed) {
-        return createErrorResponse(result.message, 429);
-      }
+
+    const keyValidation = await validateAndProcessApiKey(apiKey, 0.1);
+    if (!keyValidation.valid) {
+      return keyValidation.error;
     }
 
     const modelPrompt = getTavilyPrompt(query);
@@ -363,6 +404,109 @@ async function handleRequest(request, env = {}) {
     });
   }
 
+  // 总结会话
+  if (apiPath === '/summarize' && apiMethod === 'POST') {
+    let apiKey =
+      url.searchParams.get('key') || request.headers.get('Authorization') || '';
+    apiKey = apiKey.replace('Bearer ', '').trim();
+
+    // 从body中获取question和answer参数
+    const { question, answer } = await request.json();
+    if (!question || !answer) {
+      return createErrorResponse('Missing question or answer parameter', 400);
+    }
+
+    const keyValidation = await validateAndProcessApiKey(apiKey, 0.1);
+    if (!keyValidation.valid) {
+      return keyValidation.error;
+    }
+
+    // 检查是否是有效的密码（SECRET_PASSWORD 或 DEMO_PASSWORD）
+    if (![DEMO_PASSWORD, SECRET_PASSWORD].includes(apiKey)) {
+      return createErrorResponse('Invalid API key. Provide a valid key.', 403);
+    }
+
+    // 截取question和answer，避免过长
+    const truncatedQuestion =
+      question.length <= 300
+        ? question
+        : question.slice(0, 150) + '......' + question.slice(-150);
+    const truncatedAnswer =
+      answer.length <= 300
+        ? answer
+        : answer.slice(0, 150) + '......' + answer.slice(-150);
+
+    // 构建总结提示词
+    const summaryPrompt = `请为以下对话生成一个简短的标题（不超过20个字）：
+
+问题：
+\`\`\`
+${truncatedQuestion}
+\`\`\`
+
+回答：
+\`\`\`
+${truncatedAnswer}
+\`\`\`
+
+要求：
+1. 标题要简洁明了，能概括对话的核心内容
+2. 不要使用引号或其他标点符号包裹
+3. 直接输出标题文本即可`;
+
+    const messages = [
+      {
+        role: 'user',
+        content: summaryPrompt
+      }
+    ];
+
+    // 选择合适的精简模型
+    const summaryModel = getLiteModelId(MODEL_IDS);
+    let modelUrl = `${API_BASE}/v1/chat/completions`;
+    modelUrl = replaceApiUrl(modelUrl);
+
+    const modelPayload = {
+      model: summaryModel,
+      messages: messages,
+      max_tokens: 300
+    };
+
+    try {
+      const modelResponse = await fetch(modelUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + getNextApiKey(API_KEY_LIST)
+        },
+        body: JSON.stringify(modelPayload)
+      });
+
+      if (!modelResponse.ok) {
+        throw new Error('Model API request failed');
+      }
+
+      const modelJsonData = await modelResponse.json();
+      const summary = modelJsonData.choices?.[0]?.message?.content || '';
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          summary: summary.trim()
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Generate summary failed:', error);
+      return createErrorResponse('Failed to generate summary', 500);
+    }
+  }
+
   if (!apiPath.startsWith('/v1')) {
     return createErrorResponse(
       apiPath + ' Invalid API path. Must start with /v1',
@@ -375,21 +519,19 @@ async function handleRequest(request, env = {}) {
     url.searchParams.get('key') || request.headers.get('Authorization') || '';
   apiKey = apiKey.replace('Bearer ', '').trim();
   let urlSearch = url.searchParams.toString();
-  if (!apiKey) {
-    return createErrorResponse(
-      'Missing API key. Provide via ?key= parameter or Authorization header',
-      401
-    );
-  } else if (apiKey === SECRET_PASSWORD) {
-    apiKey = getNextApiKey(API_KEY_LIST);
+
+  const originalApiKey = apiKey;
+  const keyValidation = await validateAndProcessApiKey(apiKey);
+  if (!keyValidation.valid) {
+    return keyValidation.error;
+  }
+
+  apiKey = keyValidation.apiKey;
+
+  // 替换 URL 中的密码为实际 API Key
+  if (originalApiKey === SECRET_PASSWORD) {
     urlSearch = urlSearch.replace(`key=${SECRET_PASSWORD}`, `key=${apiKey}`);
-  } else if (apiKey === DEMO_PASSWORD && DEMO_PASSWORD) {
-    // 临时密码, 仅限于测试使用, 每小时最多调用指定次数
-    const result = await checkAndUpdateDemoCounter();
-    if (!result.allowed) {
-      return createErrorResponse(result.message, 429);
-    }
-    apiKey = getNextApiKey(API_KEY_LIST);
+  } else if (originalApiKey === DEMO_PASSWORD) {
     urlSearch = urlSearch.replace(`key=${DEMO_PASSWORD}`, `key=${apiKey}`);
   }
 
@@ -3593,62 +3735,19 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const session = this.currentSession;
             if (!session || !session.question || !session.answer) return;
             if (session.summary && session.question2) return;
-            let { id, question, answer } = session;
-            question =
-              question.length <= 300
-                ? question
-                : question.slice(0, 150) + '......' + question.slice(-150);
-            answer =
-              answer.length <= 300
-                ? answer
-                : answer.slice(0, 150) + '......' + answer.slice(-150);
-
-            const messages = [
-              {
-                role: 'user',
-                content:
-                  '# 请为以下的一问一答生成一个简短的摘要，概括对话的主题，12字以内（不要有任何开场白、解释说明、结尾总结，也不要任何格式，句中可以包含标点符号，但不要以标点符号结尾）\\n\\n---\\n<pre><code>[问题]:\\n' +
-                  question +
-                  '\\n\\n[回答]:\\n' +
-                  answer +
-                  '</code></pre>'
-              }
-            ];
+            const { id, question, answer } = session;
 
             await this.sleep(150);
-            const summaryParts = [
-              '-mini',
-              '-nano',
-              '-lite',
-              '-flash',
-              '-4o',
-              '-k2',
-              '-v3',
-              '-r1',
-              '-haiku',
-              'gpt'
-            ];
-            let summaryModel = this.selectedModel;
-            for (const part of summaryParts) {
-              const item = this.availableModels.find(m =>
-                m.value.toLowerCase().includes(part)
-              );
-              if (item) {
-                summaryModel = item.value;
-                break;
-              }
-            }
-            fetch('/v1/chat/completions', {
+
+            fetch('/summarize', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 Authorization: 'Bearer ' + this.apiKey
               },
               body: JSON.stringify({
-                model: summaryModel,
-                messages: messages,
-                temperature: 0.7,
-                max_tokens: 300
+                question: question,
+                answer: answer
               })
             })
               .then(response => {
@@ -3660,27 +3759,22 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 return response.json();
               })
               .then(async data => {
-                if (
-                  data.choices &&
-                  data.choices[0] &&
-                  data.choices[0].message
-                ) {
-                  let summary = data.choices[0].message.content || '';
-                  if (summary) {
-                    const item = this.sessions.find(s => s.id === id);
-                    if (item) {
-                      if (
-                        summary.endsWith('。') ||
-                        summary.endsWith('！') ||
-                        summary.endsWith('？')
-                      ) {
-                        summary = summary.slice(0, -1);
-                      }
-                      item.summary = summary;
-                      this.sleep(1000).then(() => {
-                        this.saveData();
-                      });
+                if (data.success && data.summary) {
+                  let summary = data.summary.trim();
+                  const item = this.sessions.find(s => s.id === id);
+                  if (item) {
+                    // 移除结尾的标点符号
+                    if (
+                      summary.endsWith('。') ||
+                      summary.endsWith('！') ||
+                      summary.endsWith('？')
+                    ) {
+                      summary = summary.slice(0, -1);
                     }
+                    item.summary = summary;
+                    this.sleep(1000).then(() => {
+                      this.saveData();
+                    });
                   }
                 } else {
                   throw new Error('未能生成摘要');
@@ -3833,7 +3927,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
-
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
