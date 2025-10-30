@@ -1,5 +1,5 @@
 const isDeno = typeof Deno !== 'undefined';
-const isCf = 
+const isCf =
   !isDeno &&
   typeof Request !== 'undefined' &&
   typeof Request.prototype !== 'undefined';
