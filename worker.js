@@ -1754,6 +1754,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           position: relative;
         }
 
+        .swal2-container h2 {
+          font-size: 1.5em;
+        }
+
         div.swal2-html-container {
           padding-left: 1em;
           padding-right: 1em;
@@ -2621,7 +2625,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 '...' : result.content }}
               </div>
 
-              <div v-if="result.url" style="margin-top: 8px; line-height: 1;">
+              <div v-if="result.url" style="margin-top: 8px; line-height: 1">
                 <a
                   :href="result.url"
                   target="_blank"
@@ -2650,6 +2654,45 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           >
             暂无搜索结果
           </div>
+        </div>
+      </div>
+
+      <!-- 隐藏的关于页面模板 -->
+      <div ref="aboutTemplate" style="display: none">
+        <div style="text-align: left; padding: 10px">
+          <h3 style="margin: 0 0 10px; color: #333">✨ 应用简介</h3>
+          <p style="line-height: 1.6; color: #666">
+            这是一个简单易用的 OpenAI API 代理服务，基于 Deno Deploy /
+            Cloudflare Workers 部署。 只需要一个域名和 OpenAI API
+            Key，即可免费为家人朋友提供 AI 问答服务。
+          </p>
+
+          <h3 style="margin: 20px 0 10px; color: #333">🎯 核心功能</h3>
+          <ul style="line-height: 1.8; color: #666; padding-left: 20px">
+            <li>提供标准的 OpenAI API 代理端点</li>
+            <li>内置精美的 Web 聊天界面</li>
+            <li>支持密码保护，避免直接暴露 API Key</li>
+            <li>流式响应，实时显示 AI 回答</li>
+            <li>基于 IndexedDB 的本地历史记录存储</li>
+            <li>支持多模型切换和自定义系统提示词</li>
+            <li>一键生成问答截图，方便分享</li>
+            <li>智能会话命名，便于查找管理</li>
+          </ul>
+
+          <h3 style="margin: 20px 0 10px; color: #333">🔗 GitHub 仓库</h3>
+          <p style="line-height: 1.6; color: #666">
+            <a
+              href="https://github.com/icheer/openai-webui-lite"
+              target="_blank"
+              style="color: #0066cc; text-decoration: none"
+            >
+              https://github.com/icheer/openai-webui-lite
+            </a>
+          </p>
+
+          <p style="margin: 20px 0 10px; color: #999; font-size: 0.9em">
+            请合理使用 AI 资源，避免滥用！
+          </p>
         </div>
       </div>
     </div>
@@ -3309,7 +3352,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
               // 检测是否是缩进的列表项（以2个或4个空格+列表符号开头）
               // 匹配格式: "  - " 或 "    - " 或 "  * " 或 "    * "
-              const indentedListMatch = line.match(/^( {2,4})([*\\-+]) /);
+              const indentedListMatch = line.match(/^( {2,4})([*\-+]) /);
 
               if (indentedListMatch) {
                 const indent = indentedListMatch[1];
@@ -3418,21 +3461,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const searchRes = this.searchRes;
             // 获取渲染后的 HTML
             const template = this.$refs.searchResTemplate;
-            if (!template) {
-              Swal.fire({
-                title: '渲染失败',
-                text: '无法找到搜索结果模板',
-                icon: 'error',
-                confirmButtonText: '确定'
-              });
-              return;
-            }
-
+            if (!template) return;
             const htmlContent = template.innerHTML;
             const query = searchRes.query;
             const answer = searchRes.answer;
             const results = searchRes.results || [];
-
             // 显示弹窗
             Swal.fire({
               title: '联网搜索详情',
@@ -4118,42 +4151,14 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           // 显示关于信息
           showAbout() {
             const isMobile = this.checkMobile();
+            const template = this.$refs.aboutTemplate;
+            if (!template) return;
+            const htmlContent = template.innerHTML;
             Swal.fire({
               title: '关于 OpenAI WebUI Lite',
               confirmButtonText: '知道了',
               width: isMobile ? '90%' : '600px',
-              html: \`
-                <div style="text-align: left; padding: 10px;">
-                  <h3 style="margin: 0 0 10px; color: #333;">✨ 应用简介</h3>
-                  <p style="line-height: 1.6; color: #666;">
-                    这是一个简单易用的 OpenAI API 代理服务，基于 Deno Deploy / Cloudflare Workers 部署。
-                    只需要一个域名和 OpenAI API Key，即可免费为家人朋友提供 AI 问答服务。
-                  </p>
-
-                  <h3 style="margin: 20px 0 10px; color: #333;">🎯 核心功能</h3>
-                  <ul style="line-height: 1.8; color: #666; padding-left: 20px;">
-                    <li>提供标准的 OpenAI API 代理端点</li>
-                    <li>内置精美的 Web 聊天界面</li>
-                    <li>支持密码保护，避免直接暴露 API Key</li>
-                    <li>流式响应，实时显示 AI 回答</li>
-                    <li>基于 IndexedDB 的本地历史记录存储</li>
-                    <li>支持多模型切换和自定义系统提示词</li>
-                    <li>一键生成问答截图，方便分享</li>
-                    <li>智能会话命名，便于查找管理</li>
-                  </ul>
-
-                  <h3 style="margin: 20px 0 10px; color: #333;">🔗 GitHub 仓库</h3>
-                  <p style="line-height: 1.6; color: #666;">
-                    <a href="https://github.com/icheer/openai-webui-lite" target="_blank" style="color: #0066cc; text-decoration: none;">
-                      https://github.com/icheer/openai-webui-lite
-                    </a>
-                  </p>
-
-                  <p style="margin: 20px 0 10px; color: #999; font-size: 0.9em;">
-                    请合理使用 AI 资源，避免滥用！
-                  </p>
-                </div>
-              \`
+              html: htmlContent
             });
           }
         }
