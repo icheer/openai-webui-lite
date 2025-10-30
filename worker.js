@@ -3455,12 +3455,19 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               blockquote && blockquote.innerText.startsWith('联网搜索：');
             if (!isClickingSearchRes) return;
             if (!blockquote.innerText.includes(this.searchRes.query)) return;
-            this.showSearchRes();
+            const matches = new RegExp('「(.*?)」').exec(blockquote.innerText);
+            const query = matches && matches[1];
+            if (!query) return;
+            this.showSearchRes(query);
           },
 
           // 展示搜索结果
-          showSearchRes() {
-            const searchRes = this.searchRes;
+          showSearchRes(query) {
+            let searchRes = sessionStorage.getItem(
+              'search_' + encodeURIComponent(query)
+            );
+            if (!searchRes) return;
+            searchRes = JSON.parse(searchRes);
             // 获取渲染后的 HTML
             const template = this.$refs.searchResTemplate;
             if (!template) return;
@@ -3751,7 +3758,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               })
                 .then(res => res.json())
                 .catch(() => ({}));
-              this.searchRes = JSON.parse(JSON.stringify(searchRes));
+              sessionStorage.setItem(
+                'search_' + encodeURIComponent(searchRes.query),
+                JSON.stringify(searchRes)
+              );
               const hasResult =
                 searchRes.results &&
                 searchRes.results.length &&
