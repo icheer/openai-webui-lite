@@ -2723,8 +2723,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             abortController: null,
             uploadedImages: [], // 待发送的图片列表 [{ url: string, file: File }]
             isUploadingImage: false,
-            needSearch: false,
-            searchRes: null
+            needSearch: false
           };
         },
         computed: {
@@ -3448,13 +3447,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           },
 
           answerClickHandler(e) {
-            if (!this.searchRes) return;
             const target = e.target;
             const blockquote = target.closest('blockquote');
             const isClickingSearchRes =
               blockquote && blockquote.innerText.startsWith('联网搜索：');
             if (!isClickingSearchRes) return;
-            if (!blockquote.innerText.includes(this.searchRes.query)) return;
             const matches = new RegExp('「(.*?)」').exec(blockquote.innerText);
             const query = matches && matches[1];
             if (!query) return;
