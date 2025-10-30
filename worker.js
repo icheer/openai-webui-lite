@@ -3408,6 +3408,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           // 展示搜索结果
           showSearchRes() {
+            const searchRes = this.searchRes;
             // 获取渲染后的 HTML
             const template = this.$refs.searchResTemplate;
             if (!template) {
