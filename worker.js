@@ -1754,6 +1754,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           position: relative;
         }
 
+        div.swal2-html-container {
+          padding-left: 1em;
+          padding-right: 1em;
+        }
+
         .main-chat {
           flex: 1;
           min-height: 0;
@@ -2612,7 +2617,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   line-height: 1.5;
                 "
               >
-                {{ result.content.length > 200 ? result.content.slice(0, 200) +
+                {{ result.content.length > 300 ? result.content.slice(0, 300) +
                 '...' : result.content }}
               </div>
 
