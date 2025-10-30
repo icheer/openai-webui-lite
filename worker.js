@@ -2617,7 +2617,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   line-height: 1.5;
                 "
               >
-                {{ result.content.length > 300 ? result.content.slice(0, 300) +
+                {{ result.content.length > 200 ? result.content.slice(0, 200) +
                 '...' : result.content }}
               </div>
 
