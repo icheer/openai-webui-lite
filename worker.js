@@ -2626,6 +2626,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   :href="result.url"
                   target="_blank"
                   style="
+                    line-height: 1;
                     color: #0066cc;
                     text-decoration: none;
                     font-size: 12px;
