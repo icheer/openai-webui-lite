@@ -29,7 +29,90 @@ const DEMO_PASSWORD_DEFAULT = '';
 const DEMO_MAX_TIMES_PER_HOUR_DEFAULT = 15;
 const TITLE_DEFAULT = 'OpenAI Chat';
 
-// 临时演示密码记忆
+// KV 存储适配器 - 兼容 Cloudflare Workers 和 Deno Deploy
+let kvStore = null;
+
+/**
+ * 初始化 KV 存储
+ * @param {Object} env - 环境变量对象（Cloudflare Workers 会传入）
+ */
+async function initKV(env = {}) {
+  if (isDeno) {
+    // Deno Deploy: 使用 Deno KV
+    try {
+      kvStore = await Deno.openKv();
+    } catch (error) {
+      console.error('Failed to open Deno KV:', error);
+      kvStore = null;
+    }
+  } else if (env.KV) {
+    // Cloudflare Workers: 使用绑定的 KV namespace
+    kvStore = env.KV;
+  } else {
+    // 没有 KV 存储，使用内存模拟（不推荐用于生产环境）
+    console.warn('KV storage not available, using in-memory fallback');
+    kvStore = null;
+  }
+  return kvStore;
+}
+
+/**
+ * 从 KV 存储获取值
+ * @param {string} key - 键名
+ * @returns {Promise<any>} - 返回解析后的 JSON 对象，如果不存在返回 null
+ */
+async function getKV(key) {
+  if (!kvStore) {
+    return null;
+  }
+
+  try {
+    if (isDeno) {
+      // Deno KV
+      const result = await kvStore.get([key]);
+      return result.value;
+    } else {
+      // Cloudflare Workers KV
+      const value = await kvStore.get(key, { type: 'json' });
+      return value;
+    }
+  } catch (error) {
+    console.error('KV get error:', error);
+    return null;
+  }
+}
+
+/**
+ * 向 KV 存储设置值
+ * @param {string} key - 键名
+ * @param {any} value - 要存储的值（会被序列化为 JSON）
+ * @param {number} ttl - 过期时间（秒），可选
+ * @returns {Promise<boolean>} - 成功返回 true
+ */
+async function setKV(key, value, ttl = null) {
+  if (!kvStore) {
+    return false;
+  }
+
+  try {
+    if (isDeno) {
+      // Deno KV
+      const options = ttl ? { expireIn: ttl * 1000 } : {};
+      await kvStore.set([key], value, options);
+      return true;
+    } else {
+      // Cloudflare Workers KV
+      const options = ttl ? { expirationTtl: ttl } : {};
+      await kvStore.put(key, JSON.stringify(value), options);
+      return true;
+    }
+  } catch (error) {
+    console.error('KV set error:', error);
+    return false;
+  }
+}
+
+// 临时演示密码记忆（仅作为 KV 不可用时的后备方案）
 const demoMemory = {
   hour: 0,
   times: 0,
@@ -41,6 +124,9 @@ let apiKeyIndex = 0;
 
 // 通用的请求处理函数
 async function handleRequest(request, env = {}) {
+  // 初始化 KV 存储
+  await initKV(env);
+
   // 从环境变量获取配置
   const SECRET_PASSWORD =
     getEnv('SECRET_PASSWORD', env) || SECRET_PASSWORD_DEFAULT;
@@ -73,8 +159,65 @@ async function handleRequest(request, env = {}) {
     CHAT_TYPE = 'openai';
   }
 
-  // 更新 demoMemory 的最大次数
-  demoMemory.maxTimes = DEMO_MAX_TIMES;
+  /**
+   * 检查并更新 demo 密码的调用次数
+   * @param {number} increment - 要增加的次数，默认为 1
+   * @returns {Promise<{allowed: boolean, message: string, data: object}>}
+   */
+  async function checkAndUpdateDemoCounter(increment = 1) {
+    const hour = Math.floor(Date.now() / 3600000);
+    const kvKey = 'demo_counter';
+
+    // 尝试从 KV 获取计数器数据
+    let demoData = await getKV(kvKey);
+
+    if (!demoData || demoData.hour !== hour) {
+      // KV 中没有数据或者已经过了一个小时，重置计数器
+      demoData = {
+        hour: hour,
+        times: 0,
+        maxTimes: DEMO_MAX_TIMES
+      };
+    }
+
+    // 检查是否超过最大调用次数
+    if (demoData.times >= demoData.maxTimes) {
+      return {
+        allowed: false,
+        message: `Exceeded maximum API calls (${demoData.maxTimes}) for this hour. Please try again next hour.`,
+        data: demoData
+      };
+    }
+
+    // 增加计数
+    demoData.times += increment;
+
+    // 保存到 KV（不设置过期时间，下次检查时会自动重置）
+    await setKV(kvKey, demoData);
+
+    // 如果 KV 存储失败，回退到内存记忆（仅当前实例有效）
+    if (!kvStore) {
+      if (demoMemory.hour === hour) {
+        if (demoMemory.times >= DEMO_MAX_TIMES) {
+          return {
+            allowed: false,
+            message: `Exceeded maximum API calls (${DEMO_MAX_TIMES}) for this hour`,
+            data: { hour, times: demoMemory.times, maxTimes: DEMO_MAX_TIMES }
+          };
+        }
+      } else {
+        demoMemory.hour = hour;
+        demoMemory.times = 0;
+      }
+      demoMemory.times += increment;
+    }
+
+    return {
+      allowed: true,
+      message: 'OK',
+      data: demoData
+    };
+  }
 
   const url = new URL(request.url);
   const apiPath = url.pathname;
@@ -152,10 +295,14 @@ async function handleRequest(request, env = {}) {
       );
     } else if (![DEMO_PASSWORD, SECRET_PASSWORD].includes(apiKey)) {
       return createErrorResponse('Invalid API key. Provide a valid key.', 403);
+    } else if (apiKey === DEMO_PASSWORD) {
+      const result = await checkAndUpdateDemoCounter(0.1);
+      if (!result.allowed) {
+        return createErrorResponse(result.message, 429);
+      }
     }
 
     const modelPrompt = getTavilyPrompt(query);
-
     const model = getLiteModelId(MODEL_IDS);
     let modelUrl = `${API_BASE}/v1/chat/completions`;
     modelUrl = replaceApiUrl(modelUrl);
@@ -238,21 +385,10 @@ async function handleRequest(request, env = {}) {
     urlSearch = urlSearch.replace(`key=${SECRET_PASSWORD}`, `key=${apiKey}`);
   } else if (apiKey === DEMO_PASSWORD && DEMO_PASSWORD) {
     // 临时密码, 仅限于测试使用, 每小时最多调用指定次数
-    const hour = Math.floor(Date.now() / 3600000);
-    // 检查当前小时是否超过最大调用次数
-    if (demoMemory.hour === hour) {
-      if (demoMemory.times >= demoMemory.maxTimes) {
-        return createErrorResponse(
-          'Exceeded maximum API calls for this hour',
-          429
-        );
-      }
-    } else {
-      // 重置计数
-      demoMemory.hour = hour;
-      demoMemory.times = 0;
+    const result = await checkAndUpdateDemoCounter();
+    if (!result.allowed) {
+      return createErrorResponse(result.message, 429);
     }
-    demoMemory.times++;
     apiKey = getNextApiKey(API_KEY_LIST);
     urlSearch = urlSearch.replace(`key=${DEMO_PASSWORD}`, `key=${apiKey}`);
   }
