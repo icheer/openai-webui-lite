@@ -3431,6 +3431,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               title: '联网搜索详情',
               html: htmlContent,
               width: this.isMobile ? '95%' : '800px',
+              padding: '0.25em 0 2em',
               showConfirmButton: true,
               confirmButtonText: '关闭',
               showCancelButton: false,
