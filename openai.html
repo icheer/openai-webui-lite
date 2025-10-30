@@ -1367,6 +1367,7 @@
                 <div
                   class="rendered-content markdown-body streaming-answer"
                   v-html="renderMarkdown(isStreaming && !currentSession.question2 ? streamingContent : currentSession.answer)"
+                  @click="answerClickHandler"
                 ></div>
               </div>
               <!-- 问题2 -->
@@ -1451,6 +1452,7 @@
                 <div
                   class="rendered-content markdown-body streaming-answer"
                   v-html="renderMarkdown(isStreaming ? streamingContent : currentSession.answer2)"
+                  @click="answerClickHandler"
                 ></div>
               </div>
             </div>
@@ -1542,6 +1544,140 @@
           </div>
         </div>
       </div>
+
+      <!-- 隐藏的搜索结果模板 -->
+      <div v-if="searchRes" ref="searchResTemplate" style="display: none">
+        <div
+          style="
+            text-align: left;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 10px;
+          "
+        >
+          <!-- 搜索查询 -->
+          <div style="margin-bottom: 20px">
+            <h3 style="margin: 0 0 10px; color: #333; font-size: 16px">
+              🔍 搜索查询
+            </h3>
+            <div
+              style="
+                padding: 12px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border-left: 4px solid #a8edea;
+              "
+            >
+              <strong style="color: #2d3748; font-size: 15px"
+                >{{ searchRes.query }}</strong
+              >
+            </div>
+          </div>
+
+          <!-- AI 总结答案 -->
+          <div v-if="searchRes.answer" style="margin-bottom: 20px">
+            <h3 style="margin: 0 0 10px; color: #333; font-size: 16px">
+              💡 AI 总结
+            </h3>
+            <div
+              style="
+                padding: 12px;
+                background: #fff3cd;
+                border-radius: 8px;
+                border-left: 4px solid #ffc107;
+                line-height: 1.6;
+                color: #666;
+                font-size: 14px;
+              "
+            >
+              {{ searchRes.answer }}
+            </div>
+          </div>
+
+          <!-- 搜索结果列表 -->
+          <div v-if="searchRes.results && searchRes.results.length > 0">
+            <div style="margin-bottom: 10px">
+              <h3 style="margin: 0 0 10px; color: #333; font-size: 16px">
+                📚 搜索结果 ({{ searchRes.results.length }} 条)
+              </h3>
+            </div>
+
+            <div
+              v-for="(result, index) in searchRes.results"
+              :key="index"
+              style="
+                margin-bottom: 15px;
+                padding: 15px;
+                background: #ffffff;
+                border: 1px solid #e1e5e9;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+              "
+            >
+              <div style="margin-bottom: 8px">
+                <span
+                  style="
+                    display: inline-block;
+                    padding: 2px 8px;
+                    background: #a8edea;
+                    color: #2d3748;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    margin-right: 8px;
+                  "
+                >
+                  {{ index + 1 }}
+                </span>
+                <strong style="color: #2d3748; font-size: 14px">
+                  {{ result.title || '无标题' }}
+                </strong>
+              </div>
+
+              <div
+                v-if="result.content"
+                style="
+                  margin: 8px 0;
+                  color: #666;
+                  font-size: 13px;
+                  line-height: 1.5;
+                "
+              >
+                {{ result.content.length > 200 ? result.content.slice(0, 200) +
+                '...' : result.content }}
+              </div>
+
+              <div v-if="result.url" style="margin-top: 8px">
+                <a
+                  :href="result.url"
+                  target="_blank"
+                  style="
+                    color: #0066cc;
+                    text-decoration: none;
+                    font-size: 12px;
+                    word-break: break-all;
+                  "
+                >
+                  🔗 {{ result.url }}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 无结果提示 -->
+          <div
+            v-else
+            style="
+              padding: 20px;
+              text-align: center;
+              color: #999;
+              font-size: 14px;
+            "
+          >
+            暂无搜索结果
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -1568,7 +1704,8 @@
             abortController: null,
             uploadedImages: [], // 待发送的图片列表 [{ url: string, file: File }]
             isUploadingImage: false,
-            needSearch: false
+            needSearch: false,
+            searchRes: null
           };
         },
         computed: {
@@ -2289,6 +2426,52 @@
               });
           },
 
+          answerClickHandler(e) {
+            if (!this.searchRes) return;
+            const target = e.target;
+            const blockquote = target.closest('blockquote');
+            const isClickingSearchRes =
+              blockquote && blockquote.innerText.startsWith('联网搜索：');
+            if (!isClickingSearchRes) return;
+            if (!blockquote.innerText.includes(this.searchRes.query)) return;
+            this.showSearchRes();
+          },
+
+          // 展示搜索结果
+          showSearchRes() {
+            // 获取渲染后的 HTML
+            const template = this.$refs.searchResTemplate;
+            if (!template) {
+              Swal.fire({
+                title: '渲染失败',
+                text: '无法找到搜索结果模板',
+                icon: 'error',
+                confirmButtonText: '确定'
+              });
+              return;
+            }
+
+            const htmlContent = template.innerHTML;
+            const query = searchRes.query;
+            const answer = searchRes.answer;
+            const results = searchRes.results || [];
+
+            // 显示弹窗
+            Swal.fire({
+              title: '联网搜索详情',
+              html: htmlContent,
+              width: this.isMobile ? '95%' : '800px',
+              showConfirmButton: true,
+              confirmButtonText: '关闭',
+              showCancelButton: false,
+              reverseButtons: true,
+              customClass: {
+                popup: 'search-results-popup',
+                htmlContainer: 'search-results-content'
+              }
+            });
+          },
+
           shareSession() {
             const sessionContent = document.querySelector('.session-content');
             if (!sessionContent) {
@@ -2556,6 +2739,7 @@
               })
                 .then(res => res.json())
                 .catch(() => ({}));
+              this.searchRes = JSON.parse(searchRes);
               const hasResult =
                 searchRes.results &&
                 searchRes.results.length &&
