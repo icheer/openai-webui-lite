@@ -3261,9 +3261,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             this.isMobile = isUaMobile || isSizeMobile;
             if (this.isMobile) {
               document.body.className = 'mobile';
+              return true;
             } else {
               document.body.className = 'pc';
               this.showSidebar = true;
+              return false;
             }
           },
 
