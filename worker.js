@@ -3185,7 +3185,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               }
             }
 
-            return processedLines.join('\n');
+            return processedLines.join('\\n');
           },
 
           fixOrderedListNumbers(html) {
