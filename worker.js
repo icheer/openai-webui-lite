@@ -3296,47 +3296,49 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   userAgent.includes('micromessenger') &&
                   userAgent.includes('mobile');
                 const isMobile = this.checkMobile();
-                if (true || isWechat) {
-                  // 微信环境：显示图片让用户长按保存
-                  const imageDataUrl = canvas.toDataURL('image/png');
-                  Swal.fire({
-                    title: '右键/长按图片保存',
-                    html:
-                      '<img src="' +
-                      imageDataUrl +
-                      '" style="max-width: 100%; height: auto; border-radius: 8px;" />',
-                    showConfirmButton: true,
-                    confirmButtonText: '关闭',
-                    width: isMobile ? '92%' : 'auto',
-                    padding: '0.25em 0 2em',
-                    customClass: {
-                      htmlContainer: 'swal-image-container'
-                    }
-                  });
-                } else {
-                  // 非微信环境：使用原有的下载逻辑
-                  const link = document.createElement('a');
-                  const regex = new RegExp('[\/\: ]', 'g');
-                  link.download =
-                    'openai-chat-' +
-                    new Date().toLocaleString().replace(regex, '-') +
-                    '.png';
-                  link.href = canvas.toDataURL('image/png');
+                const imageDataUrl = canvas.toDataURL('image/png');
+                Swal.fire({
+                  title: isMobile ? '长按保存图片' : '右键复制图片',
+                  html:
+                    '<img src="' +
+                    imageDataUrl +
+                    '" style="max-width: 100%; height: auto; border-radius: 8px;" />',
+                  showConfirmButton: true,
+                  confirmButtonText: '关闭',
+                  showCancelButton: true,
+                  cancelButtonText: '下载',
+                  reverseButtons: true,
+                  width: isMobile ? '92%' : 'auto',
+                  padding: '0.25em 0 2em',
+                  customClass: {
+                    htmlContainer: 'swal-image-container'
+                  }
+                }).then(result => {
+                  // 如果点击了取消按钮（显示为"下载"）
+                  if (result.dismiss === Swal.DismissReason.cancel) {
+                    const link = document.createElement('a');
+                    const regex = new RegExp('[\/\: ]', 'g');
+                    link.download =
+                      'openai-chat-' +
+                      new Date().toLocaleString().replace(regex, '-') +
+                      '.png';
+                    link.href = imageDataUrl;
 
-                  // 触发下载
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                    // 触发下载
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
 
-                  // 显示成功消息
-                  Swal.fire({
-                    title: '截图成功',
-                    text: '图片已保存到下载文件夹',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                  });
-                }
+                    // 显示下载成功提示
+                    Swal.fire({
+                      title: '下载成功',
+                      text: '图片已保存到下载文件夹',
+                      icon: 'success',
+                      timer: 2000,
+                      showConfirmButton: false
+                    });
+                  }
+                });
               })
               .catch(error => {
                 console.error('截图失败:', error);
