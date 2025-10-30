@@ -429,6 +429,9 @@ const MODEL_IDS_DEFAULT = 'qwen3-max,kimi-k2,your-new-model';
 
 ## 🙋‍♂️ 常见问题
 
+**Q: 只支持 OpenAI 的模型吗？**<br>
+_A: 不是。本项目支持所有兼容 OpenAI API 格式的模型和服务，包括但不限于 OpenAI、Gemini、Qwen、GLM、Kimi、DeepSeek 等。只需配置相应的 `API_BASE` 和 `API_KEYS` 即可使用。_
+
 **Q: 为什么推荐 Deno Deploy 而不是 Cloudflare Workers？**<br>
 _A: Deno Deploy 部署简单快捷，提供稳定的全球访问。两个平台都适用，根据个人偏好选择即可。_
 
