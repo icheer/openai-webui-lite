@@ -19,7 +19,7 @@
 > - **API文档**: [https://platform.iflow.cn/docs/](https://platform.iflow.cn/docs/)
 > - **API_BASE**: `https://apis.iflow.cn`
 > - **API_KEYS**: 在 [心流 - 我的账户](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 注册后申请
-> - **可用模型**: Qwen3-Max、Qwen3-Coder-Plus、GLM-4.6、Kimi-K2、DeepSeek-V3.2-Exp、DeepSeek-R1 等国产大模型 ([完整列表](https://platform.iflow.cn/models))
+> - **可用模型**: Qwen3-Max、Qwen3-Coder-Plus、Qwen3-VL-Plus、GLM-4.6、Kimi-K2、DeepSeek-V3.2-Exp、DeepSeek-R1 等国产大模型 ([完整列表](https://platform.iflow.cn/models))
 > - **注意事项**: 
 >   - 心流的 API Key 会在一段时间（约为七天）后自动过期（防滥用措施），过期后需在设置页面手动重置
 >   - 每个 Key 最多同时发起一个请求，超出限制会返回 429 错误码
