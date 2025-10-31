@@ -2214,6 +2214,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   v-model="needSearch"
                   class="model-search"
                   id="needSearch"
+                  @change="saveData()"
                 />
                 <span>联网搜索</span>
               </label>
@@ -2988,6 +2989,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               (await window.openaiDB.getItem('openai_selected_model')) ||
               this.availableModels[0].value;
 
+            // 加载联网搜索开关状态
+            this.needSearch = !!(await window.openaiDB.getItem(
+              'openai_enable_search'
+            ));
+
             // 加载当前会话的草稿
             this.loadDraftFromCurrentSession();
 
@@ -3009,6 +3015,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             await window.openaiDB.setItem(
               'openai_selected_model',
               this.selectedModel
+            );
+            await window.openaiDB.setItem(
+              'openai_enable_search',
+              this.needSearch
             );
           },
 
