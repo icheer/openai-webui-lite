@@ -2305,10 +2305,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   <a
                     v-for="(img, index) in currentSession.images"
                     :key="index"
-                    href="javascript:void(0)"
-                    @click="previewImage(img)"
+                    :href="img !== 'INVALID' ? 'javascript:void(0)' : undefined"
+                    @click="img !== 'INVALID' ? previewImage(img) : null"
+                    :style="img === 'INVALID' ? 'cursor: not-allowed; opacity: 0.5;' : ''"
+                    :title="img === 'INVALID' ? '图片未上传,无法预览' : '点击预览'"
                   >
-                    📎 图片{{ index + 1 }}
+                    📎 图片{{ index + 1 }}{{ img === 'INVALID' ? ' (本地)' : ''
+                    }}
                   </a>
                 </div>
               </div>
@@ -2391,10 +2394,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   <a
                     v-for="(img, index) in currentSession.images2"
                     :key="index"
-                    href="javascript:void(0)"
-                    @click="previewImage(img)"
+                    :href="img !== 'INVALID' ? 'javascript:void(0)' : undefined"
+                    @click="img !== 'INVALID' ? previewImage(img) : null"
+                    :style="img === 'INVALID' ? 'cursor: not-allowed; opacity: 0.5;' : ''"
+                    :title="img === 'INVALID' ? '图片未上传,无法预览' : '点击预览'"
                   >
-                    📎 图片{{ index + 1 }}
+                    📎 图片{{ index + 1 }}{{ img === 'INVALID' ? ' (本地)' : ''
+                    }}
                   </a>
                 </div>
               </div>
@@ -2452,7 +2458,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 :key="index"
                 class="image-tag"
               >
-                <img :src="img.url" :alt="'图片' + (index + 1)" />
+                <img
+                  :src="img.url || (img.file ? URL.createObjectURL(img.file) : '')"
+                  :alt="'图片' + (index + 1)"
+                />
                 <span class="image-tag-text">图片{{ index + 1 }}</span>
                 <button
                   class="image-tag-remove"
@@ -2467,7 +2476,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             <div class="input-wrapper">
               <!-- 上传图片按钮 -->
               <button
-                v-if="canUpload"
                 class="upload-image-btn"
                 @click="triggerImageUpload"
                 :disabled="!canInput || uploadedImages.length >= 2 || isUploadingImage"
@@ -2488,8 +2496,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 @input="onInputChange"
                 @keydown="handleKeyDown"
                 @paste="handlePaste"
-                class="message-input"
-                :class="{'can-upload': canUpload}"
+                class="message-input can-upload"
                 :placeholder="inputPlaceholder"
                 :disabled="!canInput"
                 rows="1"
@@ -2734,11 +2741,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           hostname() {
             return window.location.hostname;
           },
-          canUpload() {
-            const isSite = this.hostname.endsWith('.keyi.ma');
-            const isClaude = this.selectedModel.startsWith('claude');
-            return isSite && !isClaude;
-          },
           currentSession() {
             return this.sessions.find(s => s.id === this.currentSessionId);
           },
@@ -2783,6 +2785,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               !this.isUploadingImage &&
               this.canInput
             );
+          },
+          canUploadImage() {
+            const isModelSupport = /(gpt|qwen|kimi)/.test(this.selectedModel);
+            const isMySite = this.hostname.endsWith('.keyi.ma');
+            return isModelSupport && isMySite;
           }
         },
         async mounted() {
@@ -3139,9 +3146,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           // 处理粘贴事件
           async handlePaste(event) {
-            // 只有在 canUpload 为 true 时才处理图片粘贴
-            if (!this.canUpload) return;
-
             const clipboardData = event.clipboardData || window.clipboardData;
             if (!clipboardData) return;
 
@@ -3193,39 +3197,50 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           async uploadImageFile(file) {
             this.isUploadingImage = true;
             try {
-              const formData = new FormData();
-              formData.append('image', file);
+              // 如果当前模型支持图片上传,则上传到图床
+              if (this.canUploadImage) {
+                const formData = new FormData();
+                formData.append('image', file);
 
-              // 创建超时 Promise
-              const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('上传超时（15秒）')), 15000);
-              });
+                // 创建超时 Promise
+                const timeoutPromise = new Promise((_, reject) => {
+                  setTimeout(
+                    () => reject(new Error('上传超时（15秒）')),
+                    15000
+                  );
+                });
 
-              // 创建上传 Promise
-              const uploadPromise = fetch('https://pic.keyi.ma/upload', {
-                method: 'POST',
-                body: formData
-              });
+                // 创建上传图床 Promise
+                const uploadPromise = fetch('https://pic.keyi.ma/upload', {
+                  method: 'POST',
+                  body: formData
+                });
 
-              // 使用 Promise.race 实现超时控制
-              const response = await Promise.race([
-                uploadPromise,
-                timeoutPromise
-              ]);
+                // 使用 Promise.race 实现超时控制
+                const response = await Promise.race([
+                  uploadPromise,
+                  timeoutPromise
+                ]);
 
-              if (!response.ok) {
-                throw new Error('上传失败: ' + response.statusText);
-              }
+                if (!response.ok) {
+                  throw new Error('上传失败: ' + response.statusText);
+                }
 
-              const data = await response.json();
+                const data = await response.json();
 
-              if (data.success && data.url) {
+                if (data.success && data.url) {
+                  this.uploadedImages.push({
+                    url: data.url,
+                    file: file
+                  });
+                } else {
+                  throw new Error('上传失败: 返回数据格式错误');
+                }
+              } else {
+                // 不支持图片URL的模型,只保存file对象,发送时再转base64
                 this.uploadedImages.push({
-                  url: data.url,
                   file: file
                 });
-              } else {
-                throw new Error('上传失败: 返回数据格式错误');
               }
             } catch (error) {
               console.error('上传图片失败:', error);
@@ -3286,6 +3301,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           // 预览图片
           previewImage(imageUrl) {
+            // 如果是INVALID标记,不支持预览
+            if (imageUrl === 'INVALID') return;
             Swal.fire({
               imageUrl: imageUrl,
               imageAlt: '图片预览',
@@ -3295,6 +3312,16 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               customClass: {
                 image: 'swal-image-preview'
               }
+            });
+          },
+
+          // 将File对象转为base64
+          fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
             });
           },
 
@@ -3538,10 +3565,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     imageDataUrl +
                     '" style="max-width: 100%; height: auto; border-radius: 8px;" /></div>',
                   showConfirmButton: true,
-                  confirmButtonText: '关闭',
+                  confirmButtonText: '下载',
                   showCancelButton: true,
-                  cancelButtonText: '下载',
-                  reverseButtons: true,
+                  cancelButtonText: '关闭',
                   width: isMobile ? '95%' : 'auto',
                   padding: '0.25em 0 1em',
                   customClass: {
@@ -3621,7 +3647,23 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const userMessage = this.messageInput
               .trim()
               .replace(new RegExp('<', 'g'), '&lt;');
-            const userImages = [...this.uploadedImages.map(img => img.url)]; // 复制图片URL数组
+
+            // 处理图片:如果不支持URL,转为base64;否则使用URL
+            const userImages = [];
+            const userImagesForSending = []; // 用于发送API的图片数组
+            for (const img of this.uploadedImages) {
+              if (img.url) {
+                // 有URL,使用URL
+                userImages.push(img.url);
+                userImagesForSending.push(img.url);
+              } else if (img.file) {
+                // 没有URL,需要转base64发送,但session中保存INVALID
+                userImages.push('INVALID');
+                const base64 = await this.fileToBase64(img.file);
+                userImagesForSending.push(base64);
+              }
+            }
+
             this.clearInput();
             this.clearUploadedImages(); // 清空上传的图片
             // 清空当前会话的草稿
@@ -3686,15 +3728,17 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 });
               }
 
-              // 添加图片内容
+              // 添加图片内容(只添加有效的图片URL,跳过INVALID)
               if (session.images && session.images.length > 0) {
                 session.images.forEach(imageUrl => {
-                  content.push({
-                    type: 'image_url',
-                    image_url: {
-                      url: imageUrl
-                    }
-                  });
+                  if (imageUrl !== 'INVALID') {
+                    content.push({
+                      type: 'image_url',
+                      image_url: {
+                        url: imageUrl
+                      }
+                    });
+                  }
                 });
               }
 
@@ -3723,15 +3767,23 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 });
               }
 
-              // 添加图片内容
-              if (session.images2 && session.images2.length > 0) {
-                session.images2.forEach(imageUrl => {
-                  content.push({
-                    type: 'image_url',
-                    image_url: {
-                      url: imageUrl
-                    }
-                  });
+              // 添加图片内容(如果是当前问题使用userImagesForSending,否则使用session保存的)
+              const isCurrentQuestion = !session.answer2;
+              const imagesToUse = isCurrentQuestion
+                ? userImagesForSending
+                : session.images2;
+
+              if (imagesToUse && imagesToUse.length > 0) {
+                imagesToUse.forEach(imageUrl => {
+                  // 跳过INVALID标记
+                  if (imageUrl !== 'INVALID') {
+                    content.push({
+                      type: 'image_url',
+                      image_url: {
+                        url: imageUrl
+                      }
+                    });
+                  }
                 });
               }
 
