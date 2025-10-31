@@ -4460,8 +4460,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       };
       removeCfScript(0);
       removeCfScript(5);
-      removeCfScript(10);
-      removeCfScript(20);
     </script>
   </body>
 </html>
