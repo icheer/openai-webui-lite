@@ -1077,7 +1077,7 @@ function getSvgContent(chatType) {
 function getManifestContent(title) {
   const str = `
 {
-  "name": "${title},
+  "name": "${title}",
   "short_name": "${title}",
   "description": "${title} - 智能对话助手",
   "start_url": "./index.html",
