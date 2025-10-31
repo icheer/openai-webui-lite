@@ -2871,7 +2871,10 @@
             let searchQuery = '';
             let searchResultsCount = 0;
             if (this.needSearch) {
-              const query = session.question2 || session.question;
+              let query = session.question2 || session.question;
+              if (session.question2) {
+                query += '\\n\\n当前会话摘要：' + (session.summary || '');
+              }
               const searchRes = await fetch('/search', {
                 method: 'POST',
                 headers: {
