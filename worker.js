@@ -4054,7 +4054,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               cache = [];
             }
             const res = cache.find(i => i.query === query);
-            return JSON.parse(res) || null;
+            return res || null;
           },
 
           // 编辑已经问过的问题
