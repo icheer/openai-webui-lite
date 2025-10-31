@@ -3582,8 +3582,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     htmlContainer: 'swal-image-container'
                   }
                 }).then(result => {
-                  // 如果点击了取消按钮（显示为"下载"）
-                  if (result.dismiss === Swal.DismissReason.cancel) {
+                  // 如果点击了确认按钮（显示为"下载"）
+                  if (result.isConfirmed) {
                     const link = document.createElement('a');
                     const regex = new RegExp('[\/\: ]', 'g');
                     link.download =
