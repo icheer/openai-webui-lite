@@ -3639,10 +3639,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           answerClickHandler(e) {
             const target = e.target;
-            if (
-              target.tagName === 'A' &&
-              target.href === 'javascript:void(0)'
-            ) {
+            if (target.tagName !== 'A') return;
+            if (target.href === 'javascript:void(0)') {
               e.preventDefault();
             }
             const blockquote = target.closest('blockquote');
