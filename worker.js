@@ -1174,7 +1174,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       /* 滚动条颜色浅一些 */
       body.pc *::-webkit-scrollbar {
         width: 10px;
-        background-color: #f9fafb;
+        background-color: #f5f6f7;
       }
 
       body.pc *::-webkit-scrollbar-thumb:hover {
@@ -1187,7 +1187,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       }
 
       body.pc *::-webkit-scrollbar-track {
-        background-color: #f9fafb;
+        background-color: #f5f6f7;
       }
 
       button,
@@ -1461,12 +1461,14 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       .new-session-btn {
         width: 100%;
         padding: 12px;
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        color: #333;
         border: none;
         border-radius: 8px;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #444;
         font-size: 14px;
         font-weight: 500;
+        /* 白色外发光字 */
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
         cursor: pointer;
         margin-bottom: 20px;
         transition: all 0.2s ease;
@@ -2245,8 +2247,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   <span>
                     <label for="fold">
                       <span>角色设定　</span>
-                      <input type="checkbox" id="fold" v-model="isFoldRole" />
-                      <small>&nbsp;折叠</small>
+                      <input
+                        v-show="!isCapturing"
+                        v-model="isFoldRole"
+                        type="checkbox"
+                        id="fold"
+                      />
+                      <small v-show="!isCapturing">&nbsp;折叠</small>
                     </label>
                   </span>
                   <button
@@ -2719,6 +2726,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             sessions: [],
             currentSessionId: null,
             isFoldRole: false,
+            isCapturing: false,
             converter: null,
             globalRolePrompt: '',
             isMobile: window.innerWidth <= 768,
@@ -3495,7 +3503,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           },
 
           // 展示搜索结果
-          showSearchRes(query) {
+          async showSearchRes(query) {
             let searchRes = sessionStorage.getItem(
               'search_' + encodeURIComponent(query)
             );
@@ -3506,28 +3514,27 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               searchRes = JSON.parse(searchRes);
               this.searchRes = searchRes;
             }
-            this.$nextTick(() => {
-              const template = this.$refs.searchResTemplate;
-              if (!template) return;
-              const htmlContent = template.innerHTML;
-              // 显示弹窗
-              Swal.fire({
-                title: '联网搜索详情',
-                html: htmlContent,
-                width: this.isMobile ? '95%' : '800px',
-                showConfirmButton: true,
-                confirmButtonText: '关闭',
-                showCancelButton: false,
-                reverseButtons: true,
-                customClass: {
-                  popup: 'search-results-popup',
-                  htmlContainer: 'search-results-content'
-                }
-              });
+            await this.$nextTick();
+            const template = this.$refs.searchResTemplate;
+            if (!template) return;
+            const htmlContent = template.innerHTML;
+            // 显示弹窗
+            Swal.fire({
+              title: '联网搜索详情',
+              html: htmlContent,
+              width: this.isMobile ? '95%' : '800px',
+              showConfirmButton: true,
+              confirmButtonText: '关闭',
+              showCancelButton: false,
+              reverseButtons: true,
+              customClass: {
+                popup: 'search-results-popup',
+                htmlContainer: 'search-results-content'
+              }
             });
           },
 
-          shareSession() {
+          async shareSession() {
             const sessionContent = document.querySelector('.session-content');
             if (!sessionContent) {
               Swal.fire({
@@ -3538,6 +3545,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               });
               return;
             }
+            this.isCapturing = true;
+            await this.$nextTick();
 
             // 显示加载提示
             Swal.fire({
@@ -3573,9 +3582,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     imageDataUrl +
                     '" style="max-width: 100%; height: auto; border-radius: 8px;" /></div>',
                   showConfirmButton: true,
-                  confirmButtonText: '下载',
+                  confirmButtonText: '&nbsp;下载&nbsp;',
                   showCancelButton: true,
-                  cancelButtonText: '关闭',
+                  cancelButtonText: '&nbsp;关闭&nbsp;',
                   width: isMobile ? '95%' : 'auto',
                   padding: '0.25em 0 1em',
                   customClass: {
@@ -3616,6 +3625,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   icon: 'error',
                   confirmButtonText: '确定'
                 });
+              })
+              .finally(() => {
+                this.isCapturing = false;
               });
           },
 
@@ -4240,7 +4252,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const htmlContent = template.innerHTML;
             Swal.fire({
               title: '关于 OpenAI WebUI Lite',
-              confirmButtonText: '知道了',
+              confirmButtonText: '&emsp;知道了&emsp;',
               width: isMobile ? '95%' : '600px',
               html: htmlContent
             });
