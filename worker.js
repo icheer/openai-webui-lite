@@ -1975,7 +1975,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         background: linear-gradient(
           to bottom,
           rgba(255, 255, 255, 0) 0%,
-          #f8f9fa 85%
+          #f8f9fa 75% #f8f9fa 100%
         );
         pointer-events: none;
       }
