@@ -1124,7 +1124,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="OpenAI Chat" />
 
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue@3.5.22/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
     <script src="https://unpkg.com/showdown@2.1.0/dist/showdown.min.js"></script>
     <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
