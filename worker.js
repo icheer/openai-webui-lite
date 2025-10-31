@@ -4451,10 +4451,15 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           }
         }
       }).mount('#app');
+      setTimeout(() => {
+        const script = document.querySelector('body > script[integrity]');
+        if (script) {
+          script.remove();
+        }
+      }, 0);
     </script>
   </body>
 </html>
-
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
