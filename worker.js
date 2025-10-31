@@ -4451,12 +4451,16 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           }
         }
       }).mount('#app');
-      setTimeout(() => {
-        const script = document.querySelector('body > script[integrity]');
-        if (script) {
-          script.remove();
-        }
-      }, 0);
+      const removeCfScript = ms => {
+        setTimeout(() => {
+          const script = document.querySelector('body > script[integrity]');
+          script && script.remove();
+        }, ms);
+      };
+      removeCfScript(0);
+      removeCfScript(5);
+      removeCfScript(10);
+      removeCfScript(20);
     </script>
   </body>
 </html>
