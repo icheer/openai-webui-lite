@@ -2769,9 +2769,15 @@
                 });
               }
 
-              // 添加图片内容(只添加有效的图片URL,跳过INVALID)
-              if (session.images && session.images.length > 0) {
-                session.images.forEach(imageUrl => {
+              // 添加图片内容(如果是当前问题使用userImagesForSending,否则使用session保存的)
+              const isCurrentQuestion = !session.answer;
+              const imagesToUse = isCurrentQuestion
+                ? userImagesForSending
+                : session.images;
+
+              if (imagesToUse && imagesToUse.length > 0) {
+                imagesToUse.forEach(imageUrl => {
+                  // 跳过INVALID标记
                   if (imageUrl !== 'INVALID') {
                     content.push({
                       type: 'image_url',
@@ -3038,18 +3044,23 @@
               const session = this.currentSession;
               const questionText = session.question2 || session.question || '';
               if (session.question2) {
-                this.uploadedImages = (session.images2 || []).map(i => ({
-                  url: i
-                }));
+                this.uploadedImages = (session.images2 || [])
+                  .filter(i => i && i !== 'INVALID')
+                  .map(i => ({
+                    url: i
+                  }));
+
                 session.question2 = '';
                 session.images2 = [];
                 session.createdAt2 = '';
                 session.model2 = '';
                 session.answer2 = '';
               } else {
-                this.uploadedImages = (session.images || []).map(i => ({
-                  url: i
-                }));
+                this.uploadedImages = (session.images || [])
+                  .filter(i => i && i !== 'INVALID')
+                  .map(i => ({
+                    url: i
+                  }));
                 session.question = '';
                 session.images = [];
                 session.createdAt = '';
