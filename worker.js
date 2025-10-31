@@ -1581,7 +1581,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       .delete-btn {
         background: none;
         border: none;
-        color: #dc3545;
+        color: #999;
         cursor: pointer;
         padding: 4px 8px;
         border-radius: 4px;
@@ -1591,6 +1591,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
       .delete-btn:hover {
         opacity: 1;
+        color: #dc3545;
         background: rgba(220, 53, 69, 0.1);
       }
 
