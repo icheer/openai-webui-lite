@@ -387,7 +387,86 @@ async function handleRequest(request, env = {}) {
       query: searchKeywords,
       max_results: 20,
       include_answer: 'basic',
-      auto_parameters: true
+      auto_parameters: true,
+      exclude_domains: [
+        // 此处排除:带有明显zz色彩/偏见的网站,确保搜索结果不混入其内容
+        // 不可解释
+        'ntdtv.com',
+        'ntd.tv',
+        'aboluowang.com',
+        'epochtimes.com',
+        'epochtimes.jp',
+        'dafahao.com',
+        'minghui.org',
+
+        // 其他强烈偏见性媒体
+        'secretchina.com',
+        'kanzhongguo.com',
+        'soundofhope.org',
+        'rfa.org',
+        'bannedbook.org',
+        'boxun.com',
+        'peacehall.com',
+        'creaders.net',
+        'backchina.com',
+
+        // 其他方向的偏见性媒体
+        'guancha.cn', // 观察者网（强烈民族主义倾向）
+        'wenxuecity.com', // 文学城（部分内容质量参差）
+
+        // 阴谋论和伪科学网站
+        'awaker.cn',
+        'tuidang.org',
+
+        // === 英文媒体 ===
+        // 极右翼/阴谋论
+        'breitbart.com', // Breitbart News（已被维基百科弃用）
+        'infowars.com', // InfoWars（阴谋论）
+        'naturalnews.com', // Natural News（伪科学）
+        'globalresearch.ca', // Global Research（阴谋论，维基百科黑名单）
+        'zerohedge.com', // Zero Hedge（极端金融偏见）
+        'thegatewaypu<wbr>ndit.com', // Gateway Pundit（虚假新闻）
+        'newsmax.com', // Newsmax（强烈保守派偏见）
+        'oann.com', // One America News（虚假信息）
+        'dailywire.com', // Daily Wire（强烈保守派）
+        'theblaze.com', // The Blaze（维基百科认定不可靠）
+        'redstate.com', // RedState（党派性强）
+        'thenationalpulse.com', // National Pulse（极右翼）
+        'thefederalist.com', // The Federalist（强烈保守派）
+
+        // 极左翼
+        'dailykos.com', // Daily Kos（维基百科建议避免）
+        'alternet.org', // AlterNet（维基百科认定不可靠）
+        'commondreams.org', // Common Dreams（强烈左翼）
+        'thecanary.co', // The Canary（维基百科认定不可靠）
+        'occupy<wbr>democrats.com', // Occupy Democrats（党派性强）
+        'truthout.org', // Truthout（强烈左翼）
+
+        // 小报和低质量新闻
+        'dailymail.co.uk', // Daily Mail（维基百科弃用）
+        'thesun.co.uk', // The Sun（小报）
+        'nypost.com', // New York Post（质量参差）
+        'express.co.uk', // Daily Express（维基百科认定不可靠）
+        'mirror.co.uk', // Daily Mirror（小报）
+        'dailystar.co.uk', // Daily Star（小报）
+
+        // 讽刺/虚假新闻网站
+        'theonion.com', // The Onion（讽刺网站）
+        'clickhole.com', // ClickHole（讽刺）
+        'babylonbee.com', // Babylon Bee（讽刺）
+        'newspunch.com', // News Punch/Your News Wire（虚假新闻）
+        'beforeitsnews.com', // Before It's News（阴谋论）
+
+        // 俄罗斯国家媒体
+        'rt.com', // RT（Russia Today）
+        'sputniknews.com', // Sputnik News
+        'tass.com', // TASS（需谨慎）
+
+        // 其他问题网站
+        'wikileaks.org', // WikiLeaks（主要来源，需谨慎）
+        'mediabiasfactcheck.com', // Media Bias Fact Check（维基百科不建议引用）
+        'allsides.com' // AllSides（维基百科认为不可靠）
+      ]
     };
     // fetch请求
     const response = await fetch(tavilyUrl, {
