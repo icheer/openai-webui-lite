@@ -3911,9 +3911,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   this.streamingContent =
                     '> 联网搜索：「' +
                     searchQuery +
-                    '」\\n> \\n> AI 模型通过实时调用 Tavily 搜索引擎，找到了 [javascript:void(0)](' +
+                    '」\\n> \\n> AI 模型通过实时调用 Tavily 搜索引擎，找到了 [' +
                     searchResultsCount +
-                    ') 条相关信息。\\n\\n';
+                    '](javascript:void(0)) 条相关信息。\\n\\n';
                 }
                 if (done) break;
 
