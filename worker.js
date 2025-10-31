@@ -2822,10 +2822,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             <ul style="line-height: 1.8; color: #666; padding-left: 20px">
               <li>提供标准的 OpenAI API 代理端点</li>
               <li>内置精美的 Web 聊天界面</li>
-              <li>支持密码保护，避免直接暴露 API Key</li>
+              <li>支持密码保护，避免暴露 API Key</li>
               <li>流式响应，实时显示 AI 回答</li>
-              <li>基于 IndexedDB 的本地历史记录存储</li>
-              <li>支持多模型切换和自定义系统提示词</li>
+              <li>基于 IndexedDB 本地历史记录存储</li>
+              <li>支持模型切换和自定义系统提示词</li>
+              <li>集成 Tavily 搜索，为 AI 提供实时网络信息</li>
               <li>一键生成问答截图，方便分享</li>
               <li>智能会话命名，便于查找管理</li>
             </ul>
@@ -2971,7 +2972,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 totalDataSize.toFixed(2) +
                 ' MB，超过了 2MB，可能会影响性能。建议清理一些旧会话。',
               icon: 'warning',
-              confirmButtonText: '知道了'
+              confirmButtonText: '&nbsp;知道了&nbsp;'
             });
           }
         },
@@ -3672,7 +3673,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               html: htmlContent,
               width: this.isMobile ? '95%' : '800px',
               showConfirmButton: true,
-              confirmButtonText: '关闭',
+              confirmButtonText: '&nbsp;关闭&nbsp;',
               showCancelButton: false,
               reverseButtons: true,
               customClass: {
