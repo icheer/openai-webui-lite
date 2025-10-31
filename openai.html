@@ -2536,14 +2536,11 @@
 
           // 展示搜索结果
           async showSearchRes(query) {
-            let searchRes = sessionStorage.getItem(
-              'search_' + encodeURIComponent(query)
-            );
+            const searchRes = this.getSearchRes(query);
             if (!searchRes) {
               this.searchRes = null;
               return;
             } else {
-              searchRes = JSON.parse(searchRes);
               this.searchRes = searchRes;
             }
             await this.$nextTick();
@@ -2869,15 +2866,12 @@
               })
                 .then(res => res.json())
                 .catch(() => ({}));
-              sessionStorage.setItem(
-                'search_' + encodeURIComponent(searchRes.query),
-                JSON.stringify(searchRes)
-              );
               const hasResult =
                 searchRes.results &&
                 searchRes.results.length &&
                 JSON.stringify(searchRes).length > 40;
               if (hasResult) {
+                this.saveSearchRes(searchRes);
                 searchRes.results = searchRes.results.map(i => {
                   const { url, score, raw_content, ...rest } = i;
                   return { ...rest };
@@ -3033,6 +3027,49 @@
               this.generateSessionSummary();
               // this.scrollToBottom();
             }
+          },
+
+          // 保存tavily的搜索结果,用于后续回显
+          saveSearchRes(res) {
+            const KEY = 'openai_search_results';
+            const query = res && res.query;
+            if (!query) return;
+            let cache = localStorage.getItem(KEY);
+            if (cache) {
+              try {
+                cache = JSON.parse(cache);
+              } catch (e) {
+                cache = [];
+              }
+            } else {
+              cache = [];
+            }
+            const idx = cache.findIndex(i => i.query === query);
+            if (idx >= 0) {
+              cache.splice(idx, 1, res);
+            } else {
+              cache.unshift(res);
+              cache = cache.slice(0, 20);
+            }
+            localStorage.setItem(KEY, JSON.stringify(cache));
+          },
+
+          // 根据query找到cache中缓存的搜索结果
+          getSearchRes(query) {
+            if (!query) return null;
+            const KEY = 'openai_search_results';
+            let cache = localStorage.getItem(KEY);
+            if (cache) {
+              try {
+                cache = JSON.parse(cache);
+              } catch (e) {
+                cache = [];
+              }
+            } else {
+              cache = [];
+            }
+            const res = cache.find(i => i.query === query);
+            return JSON.parse(res) || null;
           },
 
           // 编辑已经问过的问题
