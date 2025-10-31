@@ -2459,7 +2459,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 class="image-tag"
               >
                 <img
-                  :src="img.url || (img.file ? URL.createObjectURL(img.file) : '')"
+                  :src="getImageDisplayUrl(img)"
                   :alt="'图片' + (index + 1)"
                 />
                 <span class="image-tag-text">图片{{ index + 1 }}</span>
@@ -3313,6 +3313,16 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 image: 'swal-image-preview'
               }
             });
+          },
+
+          // 获取图片的显示URL(用于标签显示)
+          getImageDisplayUrl(img) {
+            if (img.url) {
+              return img.url;
+            } else if (img.file) {
+              return URL.createObjectURL(img.file);
+            }
+            return '';
           },
 
           // 将File对象转为base64
