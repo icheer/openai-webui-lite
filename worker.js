@@ -2305,13 +2305,12 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   <a
                     v-for="(img, index) in currentSession.images"
                     :key="index"
-                    :href="img !== 'INVALID' ? 'javascript:void(0)' : undefined"
-                    @click="img !== 'INVALID' ? previewImage(img) : null"
-                    :style="img === 'INVALID' ? 'cursor: not-allowed; opacity: 0.5;' : ''"
+                    href="javascript:void(0)"
                     :title="img === 'INVALID' ? '图片未上传,无法预览' : '点击预览'"
+                    :style="img === 'INVALID' ? 'cursor: not-allowed; opacity: 0.5;' : ''"
+                    @click="previewImage(img)"
                   >
-                    📎 图片{{ index + 1 }}{{ img === 'INVALID' ? ' (本地)' : ''
-                    }}
+                    📎 {{ img === 'INVALID' ? '本地' : '' }}图片{{ index + 1 }}
                   </a>
                 </div>
               </div>
@@ -2394,13 +2393,12 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   <a
                     v-for="(img, index) in currentSession.images2"
                     :key="index"
-                    :href="img !== 'INVALID' ? 'javascript:void(0)' : undefined"
-                    @click="img !== 'INVALID' ? previewImage(img) : null"
-                    :style="img === 'INVALID' ? 'cursor: not-allowed; opacity: 0.5;' : ''"
+                    href="javascript:void(0)"
                     :title="img === 'INVALID' ? '图片未上传,无法预览' : '点击预览'"
+                    :style="img === 'INVALID' ? 'cursor: not-allowed; opacity: 0.5;' : ''"
+                    @click="previewImage(img)"
                   >
-                    📎 图片{{ index + 1 }}{{ img === 'INVALID' ? ' (本地)' : ''
-                    }}
+                    📎 {{ img === 'INVALID' ? '本地' : '' }}图片{{ index + 1 }}
                   </a>
                 </div>
               </div>
