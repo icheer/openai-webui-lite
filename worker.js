@@ -368,12 +368,10 @@ async function handleRequest(request, env = {}) {
     });
     // 接下来从modelResponse中提取content
     const modelJsonData = await modelResponse.json();
-    console.log(modelJsonData);
-    console.log(JSON.stringify(modelJsonData));
     const content = modelJsonData.choices?.[0]?.message?.content || '';
     // 从中找到反引号`的位置, 提取反引号里包裹的内容
     // 从结果中找到花括号内容, 提取为JSON
-    const jsonMatch = content.match(/({.*})/);
+    const jsonMatch = content.replace(/\n/g, '').match(/({.*})/);
     let searchJson = jsonMatch ? jsonMatch[1].trim() : content;
     try {
       searchJson = JSON.parse(searchJson);
