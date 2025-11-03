@@ -44,9 +44,9 @@
 
 ## 🖼️ 截图
 
-![openai_webui_lite](https://lsky.useforall.com/pixel/2025/10/28/690080c0cad75.png)
+![openai_webui_lite](https://lsky.useforall.com/pixel/2025/11/03/690882cd3229a.png)
 
-![openai_webui_lite-m](https://lsky.useforall.com/pixel/2025/10/28/69008176e3190.jpg)
+![openai_webui_lite-m](https://lsky.useforall.com/pixel/2025/11/03/690882cced092.png)
 
 ## 🎯 功能说明
 
