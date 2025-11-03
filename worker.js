@@ -372,7 +372,7 @@ async function handleRequest(request, env = {}) {
     // 从中找到反引号`的位置, 提取反引号里包裹的内容
     // 从结果中找到花括号内容, 提取为JSON
     const jsonMatch = content.match(/({.*})/);
-    let searchJson = jsonMatch ? jsonMatch[1].trim() : jsonMatch;
+    let searchJson = jsonMatch ? jsonMatch[1].trim() : content;
     try {
       searchJson = JSON.parse(searchJson);
     } catch (e) {
