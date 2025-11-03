@@ -762,10 +762,10 @@ function getLiteModelId(modelIds) {
     .map(i => i.trim().split(':')[0])
     .filter(i => i);
   const parts = [
-    '-mini',
     '-nano',
-    '-lite',
+    '-mini',
     '-flash',
+    '-lite',
     '-instruct',
     '-4o',
     '-k2',
