@@ -2856,6 +2856,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 line-height: 1.6;
                 color: #666;
                 font-size: 14px;
+                max-height: 7.5em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                line-clamp: 5;
+                -webkit-line-clamp: 5;
+                -webkit-box-orient: vertical;
               "
             >
               {{ searchRes.answer }}
@@ -2911,7 +2918,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   line-height: 1.5;
                 "
               >
-                {{ result.content.length > 200 ? result.content.slice(0, 200) +
+                {{ result.content.length > 300 ? result.content.slice(0, 300) +
                 '...' : result.content }}
               </div>
 
@@ -2924,6 +2931,12 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     text-decoration: none;
                     font-size: 12px;
                     word-break: break-all;
+                    display: -webkit-box;
+                    line-clamp: 2;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                   "
                 >
                   🔗 {{ result.url }}
@@ -3084,13 +3097,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           // 配置 marked
           marked.setOptions({
-            breaks: true,        // 支持 GFM 换行
-            gfm: true,          // 启用 GitHub Flavored Markdown
-            tables: true,       // 支持表格
-            pedantic: false,    // 不使用原始的 markdown.pl 规则
-            sanitize: false,    // 不清理 HTML（因为我们信任内容）
-            smartLists: true,   // 使用更智能的列表行为
-            smartypants: false  // 不使用智能标点符号
+            breaks: true, // 支持 GFM 换行
+            gfm: true, // 启用 GitHub Flavored Markdown
+            tables: true, // 支持表格
+            pedantic: false, // 不使用原始的 markdown.pl 规则
+            sanitize: false, // 不清理 HTML（因为我们信任内容）
+            smartLists: true, // 使用更智能的列表行为
+            smartypants: false // 不使用智能标点符号
           });
 
           await this.loadData();
@@ -3665,10 +3678,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           renderMarkdown(text) {
             if (!text) return '';
-            
+
             // 使用 marked 解析 Markdown
             let html = marked.parse(text);
-            
+
             return html;
           },
 
