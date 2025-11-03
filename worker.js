@@ -155,6 +155,8 @@ async function handleRequest(request, env = {}) {
     CHAT_TYPE = 'claude';
   } else if (/qwen/i.test(TITLE)) {
     CHAT_TYPE = 'qwen';
+  } else if (/deepseek/i.test(TITLE)) {
+    CHAT_TYPE = 'deepseek';
   } else if (/openai/i.test(TITLE)) {
     CHAT_TYPE = 'openai';
   }
@@ -1154,6 +1156,29 @@ function getSvgContent(chatType) {
   ></path>
 </svg>
   `;
+  const svgDeepseek = `
+<svg
+  t="1762144870999"
+  class="icon"
+  viewBox="0 0 1024 1024"
+  version="1.1"
+  xmlns="http://www.w3.org/2000/svg"
+  p-id="6244"
+  width="24"
+  height="24"
+>
+  <path
+    d="M550.4 486.4c0-8.533333 4.266667-12.8 12.8-12.8h4.266667c4.266667 0 4.266667 4.266667 4.266666 4.266667s4.266667 4.266667 4.266667 8.533333v4.266667s0 4.266667-4.266667 4.266666c0 0-4.266667 0-4.266666 4.266667h-4.266667-4.266667s-4.266667 0-4.266666-4.266667c0 0 0-4.266667-4.266667-4.266666v-4.266667z"
+    fill="#4D6BFE"
+    p-id="6245"
+  ></path>
+  <path
+    d="M994.133333 196.266667c-8.533333-4.266667-12.8 4.266667-21.333333 8.533333l-4.266667 4.266667c-12.8 17.066667-34.133333 25.6-55.466666 25.6-34.133333 0-59.733333 8.533333-85.333334 34.133333-4.266667-29.866667-21.333333-51.2-51.2-64-12.8-4.266667-29.866667-12.8-38.4-25.6-8.533333-8.533333-8.533333-21.333333-12.8-29.866667 0-4.266667 0-12.8-8.533333-12.8s-12.8 4.266667-12.8 12.8c-12.8 21.333333-21.333333 46.933333-17.066667 72.533334 0 59.733333 25.6 106.666667 72.533334 136.533333 4.266667 4.266667 8.533333 8.533333 4.266666 12.8-4.266667 12.8-8.533333 21.333333-8.533333 34.133333-4.266667 8.533333-4.266667 8.533333-12.8 4.266667-25.6-12.8-51.2-29.866667-68.266667-46.933333-34.133333-34.133333-64-72.533333-102.4-102.4-8.533333-8.533333-17.066667-12.8-25.6-21.333334-46.933333-34.133333 0-64 8.533334-68.266666 12.8-4.266667 4.266667-17.066667-29.866667-17.066667-34.133333 0-68.266667 12.8-106.666667 29.866667-8.533333 0-12.8 0-21.333333 4.266666-38.4-8.533333-76.8-8.533333-115.2-4.266666-76.8 8.533333-136.533333 42.666667-179.2 106.666666-51.2 76.8-64 157.866667-51.2 247.466667 17.066667 93.866667 64 170.666667 132.266667 230.4 72.533333 64 157.866667 93.866667 256 85.333333 59.733333-4.266667 123.733333-12.8 200.533333-76.8 17.066667 8.533333 38.4 12.8 72.533333 17.066667 25.6 4.266667 51.2 0 68.266667-4.266667 29.866667-4.266667 25.6-34.133333 17.066667-38.4-85.333333-42.666667-68.266667-25.6-85.333334-38.4 42.666667-51.2 110.933333-106.666667 136.533334-285.866666v-34.133334c0-8.533333 4.266667-8.533333 12.8-8.533333 21.333333-4.266667 42.666667-8.533333 59.733333-21.333333 55.466667-29.866667 76.8-81.066667 85.333333-145.066667 0-8.533333 0-17.066667-12.8-21.333333zM507.733333 746.666667c-85.333333-68.266667-123.733333-89.6-140.8-89.6-17.066667 0-12.8 21.333333-8.533333 29.866666 4.266667 12.8 8.533333 21.333333 12.8 29.866667 4.266667 8.533333 8.533333 17.066667-4.266667 25.6-25.6 17.066667-72.533333-4.266667-76.8-8.533333-55.466667-34.133333-98.133333-76.8-132.266666-136.533334-29.866667-51.2-46.933333-110.933333-46.933334-174.933333 0-17.066667 4.266667-21.333333 17.066667-25.6 21.333333-4.266667 42.666667-4.266667 59.733333 0 85.333333 12.8 157.866667 51.2 217.6 115.2 34.133333 34.133333 59.733333 76.8 89.6 119.466667 29.866667 42.666667 59.733333 85.333333 98.133334 119.466666 12.8 12.8 25.6 21.333333 34.133333 25.6-29.866667 0-81.066667 0-119.466667-29.866666z m166.4-196.266667c-8.533333 4.266667-17.066667 4.266667-25.6 4.266667-12.8 0-25.6-4.266667-29.866666-8.533334-12.8-8.533333-17.066667-12.8-21.333334-29.866666v-25.6c4.266667-12.8 0-21.333333-8.533333-29.866667-8.533333-4.266667-17.066667-8.533333-25.6-8.533333-4.266667 0-8.533333 0-8.533333-4.266667 0 0-4.266667 0-4.266667-4.266667v-4.266666-4.266667-4.266667c0-4.266667 8.533333-8.533333 8.533333-8.533333 12.8-8.533333 29.866667-4.266667 46.933334 0 12.8 4.266667 25.6 17.066667 38.4 29.866667 17.066667 17.066667 17.066667 25.6 25.6 38.4 8.533333 12.8 12.8 21.333333 17.066666 34.133333 0 12.8-4.266667 21.333333-12.8 25.6z"
+    fill="#4D6BFE"
+    p-id="6246"
+  ></path>
+</svg>
+  `;
   const svgBot = `
 <svg
   t="1761636163452"
@@ -1179,6 +1204,8 @@ function getSvgContent(chatType) {
       return svgClaude;
     case 'qwen':
       return svgQwen;
+    case 'deepseek':
+      return svgDeepseek;
     case 'openai':
       return svgOpenai;
     default:
@@ -1238,7 +1265,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
     <script src="https://unpkg.com/vue@3.5.22/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
-    <script src="https://unpkg.com/showdown@2.1.0/dist/showdown.min.js"></script>
+    <script src="https://unpkg.com/marked@12.0.0/marked.min.js"></script>
     <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link
       rel="stylesheet"
@@ -2979,7 +3006,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             currentSessionId: null,
             isFoldRole: false,
             isCapturing: false,
-            converter: null,
             globalRolePrompt: '',
             isMobile: window.innerWidth <= 768,
             showSidebar: false,
@@ -3056,15 +3082,15 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           // 初始化 IndexedDB
           await window.openaiDB.init();
 
-          this.converter = new showdown.Converter({
-            simpleLineBreaks: true,
-            simplifiedAutoLink: true,
-            openLinksInNewWindow: true,
-            excludeTrailingPunctuationFromURLs: true,
-            literalMidWordUnderscores: true,
-            strikethrough: true,
-            tasklists: true,
-            tables: true
+          // 配置 marked
+          marked.setOptions({
+            breaks: true,        // 支持 GFM 换行
+            gfm: true,          // 启用 GitHub Flavored Markdown
+            tables: true,       // 支持表格
+            pedantic: false,    // 不使用原始的 markdown.pl 规则
+            sanitize: false,    // 不清理 HTML（因为我们信任内容）
+            smartLists: true,   // 使用更智能的列表行为
+            smartypants: false  // 不使用智能标点符号
           });
 
           await this.loadData();
@@ -3639,94 +3665,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           renderMarkdown(text) {
             if (!text) return '';
-            let html = this.converter.makeHtml(text);
-            // 修复有序列表的连续编号问题
-            html = this.fixOrderedListNumbers(html);
-
+            
+            // 使用 marked 解析 Markdown
+            let html = marked.parse(text);
+            
             return html;
-          },
-
-          // 预处理 Markdown 文本，修复嵌套列表的缩进问题
-          preprocessMarkdown(text) {
-            if (!text) return '';
-
-            const lines = text.split('\\n');
-            const processedLines = [];
-
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i];
-
-              // 检测是否是缩进的列表项（以2个或4个空格+列表符号开头）
-              // 匹配格式: "  - " 或 "    - " 或 "  * " 或 "    * "
-              const indentedListMatch = line.match(/^( {2,4})([*\-+]) /);
-
-              if (indentedListMatch) {
-                const indent = indentedListMatch[1];
-                const marker = indentedListMatch[2];
-                const content = line.slice(indent.length + 2) || ''; // +2 是列表符号和空格
-
-                // 将2个空格的缩进转换为4个空格（Showdown 需要4个空格才能识别为子列表）
-                if (indent.length === 2) {
-                  processedLines.push('    ' + marker + ' ' + content);
-                } else {
-                  // 已经是4个空格，保持不变
-                  processedLines.push(line);
-                }
-              } else {
-                // 不是缩进列表项，保持原样
-                processedLines.push(line);
-              }
-            }
-
-            return processedLines.join('\\n');
-          },
-
-          fixOrderedListNumbers(html) {
-            // 创建一个临时容器来解析 HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-
-            // 追踪同一层级的 ol 计数器
-            const processNode = (parentNode, olCounter = { count: 0 }) => {
-              const children = Array.from(parentNode.children);
-
-              for (let i = 0; i < children.length; i++) {
-                const node = children[i];
-
-                // 如果遇到标题标签，重置计数器
-                if (/^H[1-6]$/.test(node.tagName)) {
-                  olCounter.count = 0;
-                  // 递归处理标题内部（虽然通常标题内部不会有列表）
-                  if (node.children.length > 0) {
-                    processNode(node, { count: 0 });
-                  }
-                } else if (node.tagName === 'OL') {
-                  // 如果是有序列表
-                  if (olCounter.count > 0) {
-                    // 不是第一个 ol，需要设置 start 属性
-                    node.setAttribute('start', olCounter.count + 1);
-                  }
-
-                  // 计算这个 ol 中有多少个 li
-                  const liCount = node.querySelectorAll(':scope > li').length;
-                  olCounter.count += liCount;
-
-                  // 递归处理 ol 内部的子节点，使用新的计数器
-                  processNode(node, { count: 0 });
-                } else if (node.tagName === 'UL') {
-                  // 无序列表不影响计数，但需要递归处理内部
-                  processNode(node, olCounter);
-                } else if (node.children.length > 0) {
-                  // 其他有子节点的元素（如 div, p 等），继续递归
-                  processNode(node, olCounter);
-                }
-              }
-            };
-
-            // 从根节点开始处理
-            processNode(tempDiv);
-
-            return tempDiv.innerHTML;
           },
 
           copyToClipboard(text) {
@@ -4252,11 +4195,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
               // 流式完成
               const answerKey = session.question2 ? 'answer2' : 'answer';
-              // 预处理 Markdown 文本，修复嵌套列表问题
-              const processedContent = this.preprocessMarkdown(
-                this.streamingContent
-              );
-              this.currentSession[answerKey] = processedContent;
+              // marked.js 原生支持嵌套列表，无需预处理
+              this.currentSession[answerKey] = this.streamingContent;
               this.saveData();
             } catch (error) {
               console.error('Error:', error);

@@ -21,7 +21,7 @@
 
     <script src="https://unpkg.com/vue@3.5.22/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
-    <script src="https://unpkg.com/showdown@2.1.0/dist/showdown.min.js"></script>
+    <script src="https://unpkg.com/marked@12.0.0/marked.min.js"></script>
     <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link
       rel="stylesheet"
@@ -1762,7 +1762,6 @@
             currentSessionId: null,
             isFoldRole: false,
             isCapturing: false,
-            converter: null,
             globalRolePrompt: '',
             isMobile: window.innerWidth <= 768,
             showSidebar: false,
@@ -1839,15 +1838,15 @@
           // 初始化 IndexedDB
           await window.openaiDB.init();
 
-          this.converter = new showdown.Converter({
-            simpleLineBreaks: true,
-            simplifiedAutoLink: true,
-            openLinksInNewWindow: true,
-            excludeTrailingPunctuationFromURLs: true,
-            literalMidWordUnderscores: true,
-            strikethrough: true,
-            tasklists: true,
-            tables: true
+          // 配置 marked
+          marked.setOptions({
+            breaks: true,        // 支持 GFM 换行
+            gfm: true,          // 启用 GitHub Flavored Markdown
+            tables: true,       // 支持表格
+            pedantic: false,    // 不使用原始的 markdown.pl 规则
+            sanitize: false,    // 不清理 HTML（因为我们信任内容）
+            smartLists: true,   // 使用更智能的列表行为
+            smartypants: false  // 不使用智能标点符号
           });
 
           await this.loadData();
@@ -2422,94 +2421,11 @@
 
           renderMarkdown(text) {
             if (!text) return '';
-            let html = this.converter.makeHtml(text);
-            // 修复有序列表的连续编号问题
-            html = this.fixOrderedListNumbers(html);
-
+            
+            // 使用 marked 解析 Markdown
+            let html = marked.parse(text);
+            
             return html;
-          },
-
-          // 预处理 Markdown 文本，修复嵌套列表的缩进问题
-          preprocessMarkdown(text) {
-            if (!text) return '';
-
-            const lines = text.split('\\n');
-            const processedLines = [];
-
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i];
-
-              // 检测是否是缩进的列表项（以2个或4个空格+列表符号开头）
-              // 匹配格式: "  - " 或 "    - " 或 "  * " 或 "    * "
-              const indentedListMatch = line.match(/^( {2,4})([*\-+]) /);
-
-              if (indentedListMatch) {
-                const indent = indentedListMatch[1];
-                const marker = indentedListMatch[2];
-                const content = line.slice(indent.length + 2) || ''; // +2 是列表符号和空格
-
-                // 将2个空格的缩进转换为4个空格（Showdown 需要4个空格才能识别为子列表）
-                if (indent.length === 2) {
-                  processedLines.push('    ' + marker + ' ' + content);
-                } else {
-                  // 已经是4个空格，保持不变
-                  processedLines.push(line);
-                }
-              } else {
-                // 不是缩进列表项，保持原样
-                processedLines.push(line);
-              }
-            }
-
-            return processedLines.join('\\n');
-          },
-
-          fixOrderedListNumbers(html) {
-            // 创建一个临时容器来解析 HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-
-            // 追踪同一层级的 ol 计数器
-            const processNode = (parentNode, olCounter = { count: 0 }) => {
-              const children = Array.from(parentNode.children);
-
-              for (let i = 0; i < children.length; i++) {
-                const node = children[i];
-
-                // 如果遇到标题标签，重置计数器
-                if (/^H[1-6]$/.test(node.tagName)) {
-                  olCounter.count = 0;
-                  // 递归处理标题内部（虽然通常标题内部不会有列表）
-                  if (node.children.length > 0) {
-                    processNode(node, { count: 0 });
-                  }
-                } else if (node.tagName === 'OL') {
-                  // 如果是有序列表
-                  if (olCounter.count > 0) {
-                    // 不是第一个 ol，需要设置 start 属性
-                    node.setAttribute('start', olCounter.count + 1);
-                  }
-
-                  // 计算这个 ol 中有多少个 li
-                  const liCount = node.querySelectorAll(':scope > li').length;
-                  olCounter.count += liCount;
-
-                  // 递归处理 ol 内部的子节点，使用新的计数器
-                  processNode(node, { count: 0 });
-                } else if (node.tagName === 'UL') {
-                  // 无序列表不影响计数，但需要递归处理内部
-                  processNode(node, olCounter);
-                } else if (node.children.length > 0) {
-                  // 其他有子节点的元素（如 div, p 等），继续递归
-                  processNode(node, olCounter);
-                }
-              }
-            };
-
-            // 从根节点开始处理
-            processNode(tempDiv);
-
-            return tempDiv.innerHTML;
           },
 
           copyToClipboard(text) {
@@ -3035,11 +2951,8 @@
 
               // 流式完成
               const answerKey = session.question2 ? 'answer2' : 'answer';
-              // 预处理 Markdown 文本，修复嵌套列表问题
-              const processedContent = this.preprocessMarkdown(
-                this.streamingContent
-              );
-              this.currentSession[answerKey] = processedContent;
+              // marked.js 原生支持嵌套列表，无需预处理
+              this.currentSession[answerKey] = this.streamingContent;
               this.saveData();
             } catch (error) {
               console.error('Error:', error);
