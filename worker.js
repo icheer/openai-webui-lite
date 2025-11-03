@@ -4113,7 +4113,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 searchResList &&
                 searchResList.length &&
                 searchResList.some(i => i.results && i.results.length > 0) &&
-                JSON.stringify(searchRes).length > 40;
+                JSON.stringify(searchResList).length > 50;
               if (hasResult) {
                 searchResList = searchResList.filter(
                   r => r.results && r.results.length > 0
@@ -4137,7 +4137,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   content:
                     'AI 模型通过实时调用 Tavily 搜索引擎，找到了以下信息: \\n' +
                     '<pre><code>' +
-                    JSON.stringify(searchRes) +
+                    JSON.stringify(searchResList) +
                     '</code></pre>'
                 });
                 messages.push({
