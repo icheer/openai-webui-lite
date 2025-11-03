@@ -2849,8 +2849,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             </h3>
             <div
               style="
-                padding: 0 12px;
-                margin: 12px 0;
+                padding: 12px;
                 background: #fff3cd;
                 border-radius: 8px;
                 border-left: 4px solid #ffc107;
@@ -2922,7 +2921,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 '...' : result.content }}
               </div>
 
-              <div v-if="result.url" style="margin-top: 8px; line-height: 1.15">
+              <div v-if="result.url" style="margin-top: 8px; line-height: 1.5">
                 <a
                   :href="result.url"
                   target="_blank"
