@@ -4092,7 +4092,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
             // 这里根据最新的问句, 调用/search接口查询语料
             let searchQueries = [];
-            let searchCounts = 0;
+            let searchCounts = [];
             if (this.needSearch) {
               let query = session.question2 || session.question;
               if (session.question2) {
