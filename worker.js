@@ -856,7 +856,7 @@ function getTavilyPrompt(query) {
 
 你的输出应是一个JSON对象，包含以下两个键：
 
-1.  **search_queries**：字符串数组，包含1个或至多3个Tavily搜索关键词
+1.  **search_queries**：字符串数组，包含1个或 **至多3个** Tavily搜索关键词
     - **复杂问题**：生成2-3个搜索关键词，覆盖问题的不同维度
     - **简单问题**：生成1个精准搜索关键词
     - **非搜索意图**：返回空数组 \`[]\`
@@ -4267,7 +4267,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               cache.splice(idx, 1, res);
             } else {
               cache.unshift(res);
-              cache = cache.slice(0, 20);
+              cache = cache.slice(0, 30);
             }
             localStorage.setItem(KEY, JSON.stringify(cache));
           },
@@ -4557,6 +4557,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);

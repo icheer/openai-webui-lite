@@ -3013,7 +3013,7 @@
               cache.splice(idx, 1, res);
             } else {
               cache.unshift(res);
-              cache = cache.slice(0, 20);
+              cache = cache.slice(0, 30);
             }
             localStorage.setItem(KEY, JSON.stringify(cache));
           },
