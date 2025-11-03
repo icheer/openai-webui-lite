@@ -2544,9 +2544,15 @@
             const isClickingSearchRes =
               blockquote && blockquote.innerText.startsWith('联网搜索：');
             if (!isClickingSearchRes) return;
-            const matches = new RegExp('「(.*?)」').exec(blockquote.innerText);
-            const query = matches && matches[1];
+            const idx = Array.from(blockquote.querySelectorAll('a')).indexOf(
+              target
+            );
+            const matches = blockquote.innerText.match(
+              new RegExp('「(.*?)」', 'g')
+            );
+            let query = matches && matches[idx];
             if (!query) return;
+            query = query.replace(/「|」/g, '').trim();
             this.showSearchRes(query);
           },
 
@@ -2868,14 +2874,15 @@
             }
 
             // 这里根据最新的问句, 调用/search接口查询语料
-            let searchQuery = '';
-            let searchResultsCount = 0;
+            let searchQueries = [];
+            let searchCounts = 0;
             if (this.needSearch) {
               let query = session.question2 || session.question;
               if (session.question2) {
-                query += '\\n\\n当前会话摘要：' + (session.summary || '');
+                query +=
+                  '\\n\\n当前会话摘要：“' + (session.summary || '') + '”';
               }
-              const searchRes = await fetch('/search', {
+              let searchResList = await fetch('/search', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -2884,19 +2891,30 @@
                 body: JSON.stringify({ query })
               })
                 .then(res => res.json())
-                .catch(() => ({}));
+                .catch(() => []);
               const hasResult =
-                searchRes.results &&
-                searchRes.results.length &&
+                searchResList &&
+                searchResList.length &&
+                searchResList.some(i => i.results && i.results.length > 0) &&
                 JSON.stringify(searchRes).length > 40;
               if (hasResult) {
-                this.saveSearchRes(searchRes);
-                searchRes.results = searchRes.results.map(i => {
-                  const { url, score, raw_content, ...rest } = i;
-                  return { ...rest };
+                searchResList = searchResList.filter(
+                  r => r.results && r.results.length > 0
+                );
+                searchResList.forEach(r => {
+                  this.saveSearchRes(r);
                 });
-                searchQuery = searchRes.query || '';
-                searchResultsCount = searchRes.results.length;
+                searchResList.forEach(searchRes => {
+                  searchRes.results = searchRes.results.map(i => {
+                    const { url, score, raw_content, ...rest } = i;
+                    return { ...rest };
+                  });
+                });
+                searchQueries = searchResList.map(r => r.query);
+                searchCounts = searchResList.reduce(
+                  (acc, r) => acc + r.results.length,
+                  0
+                );
                 messages.push({
                   role: 'assistant',
                   content:
@@ -2957,13 +2975,15 @@
                 const { done, value } = await reader.read();
 
                 // 显示搜索结果数量（如果有）
-                if (searchResultsCount > 0 && !this.streamingContent) {
+                if (hasResult && !this.streamingContent) {
                   this.streamingContent =
-                    '> 联网搜索：「' +
-                    searchQuery +
-                    '」\\n> \\n> AI 模型通过实时调用 Tavily 搜索引擎，找到了 [' +
-                    searchResultsCount +
-                    '](javascript:void(0)) 条相关信息。\\n\\n';
+                    '> 联网搜索：' +
+                    searchQueries.map(q => '「' + q + '」').join('、') +
+                    '\\n> \\n> AI 模型通过实时调用 Tavily 搜索引擎，找到了 ' +
+                    searchCounts
+                      .map(c => '[' + c + '](javascript:void(0))')
+                      .join('、') +
+                    ' 条相关信息。\\n\\n';
                 }
                 if (done) break;
 
@@ -3053,6 +3073,7 @@
             const KEY = 'openai_search_results';
             const query = res && res.query;
             if (!query) return;
+            if (!res.results || res.results.length === 0) return;
             let cache = localStorage.getItem(KEY);
             if (cache) {
               try {

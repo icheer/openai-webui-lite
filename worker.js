@@ -368,12 +368,16 @@ async function handleRequest(request, env = {}) {
     const modelJsonData = await modelResponse.json();
     const content = modelJsonData.choices?.[0]?.message?.content || '';
     // 从中找到反引号`的位置, 提取反引号里包裹的内容
-    const backtickMatch = content.match(/`([^`]+)`/);
-    const searchKeywords = backtickMatch
-      ? backtickMatch[1].trim()
-      : content.trim();
-    if (searchKeywords.includes('非搜索意图')) {
-      return new Response(JSON.stringify({ results: [] }), {
+    // 从结果中找到花括号内容, 提取为JSON
+    const jsonMatch = content.match(/({.*})/);
+    let searchJson = jsonMatch ? jsonMatch[1].trim() : searchJson;
+    try {
+      searchJson = JSON.parse(searchJson);
+    } catch (e) {
+      searchJson = null;
+    }
+    if (!searchJson || searchJson.num_results === 0) {
+      return new Response(JSON.stringify([]), {
         status: 200,
         headers: {
           'Content-Type': 'application/json'
@@ -381,105 +385,137 @@ async function handleRequest(request, env = {}) {
       });
     }
 
-    const tavilyUrl = 'https://api.tavily.com/search';
-    const tavilyKey = getRandomApiKey(TAVILY_KEY_LIST);
-    const payload = {
-      query: searchKeywords,
-      max_results: 20,
-      include_answer: 'basic',
-      auto_parameters: true,
-      exclude_domains: [
-        // 此处排除:带有明显zz色彩/偏见的网站,确保搜索结果不混入其内容
-        // 不可解释
-        'ntdtv.com',
-        'ntd.tv',
-        'aboluowang.com',
-        'epochtimes.com',
-        'epochtimes.jp',
-        'dafahao.com',
-        'minghui.org',
+    // 并发请求所有搜索关键词
+    const searchPromises = searchJson.search_queries.map(
+      async searchKeyword => {
+        const tavilyUrl = 'https://api.tavily.com/search';
+        const tavilyKey = getRandomApiKey(TAVILY_KEY_LIST);
+        const payload = {
+          query: searchKeyword,
+          max_results: searchJson.num_results,
+          include_answer: 'basic',
+          auto_parameters: true,
+          exclude_domains: [
+            // 此处排除:带有明显zz色彩/偏见的网站,确保搜索结果不混入其内容
+            // 不可解释
+            'ntdtv.com',
+            'ntd.tv',
+            'aboluowang.com',
+            'epochtimes.com',
+            'epochtimes.jp',
+            'dafahao.com',
+            'minghui.org',
 
-        // 其他强烈偏见性媒体
-        'secretchina.com',
-        'kanzhongguo.com',
-        'soundofhope.org',
-        'rfa.org',
-        'bannedbook.org',
-        'boxun.com',
-        'peacehall.com',
-        'creaders.net',
-        'backchina.com',
+            // 其他强烈偏见性媒体
+            'secretchina.com',
+            'kanzhongguo.com',
+            'soundofhope.org',
+            'rfa.org',
+            'bannedbook.org',
+            'boxun.com',
+            'peacehall.com',
+            'creaders.net',
+            'backchina.com',
 
-        // 其他方向的偏见性媒体
-        'guancha.cn', // 观察者网（强烈民族主义倾向）
-        'wenxuecity.com', // 文学城（部分内容质量参差）
+            // 其他方向的偏见性媒体
+            'guancha.cn', // 观察者网（强烈民族主义倾向）
+            'wenxuecity.com', // 文学城（部分内容质量参差）
 
-        // 阴谋论和伪科学网站
-        'awaker.cn',
-        'tuidang.org',
+            // 阴谋论和伪科学网站
+            'awaker.cn',
+            'tuidang.org',
 
-        // === 英文媒体 ===
-        // 极右翼/阴谋论
-        'breitbart.com', // Breitbart News（已被维基百科弃用）
-        'infowars.com', // InfoWars（阴谋论）
-        'naturalnews.com', // Natural News（伪科学）
-        'globalresearch.ca', // Global Research（阴谋论，维基百科黑名单）
-        'zerohedge.com', // Zero Hedge（极端金融偏见）
-        'thegatewaypu<wbr>ndit.com', // Gateway Pundit（虚假新闻）
-        'newsmax.com', // Newsmax（强烈保守派偏见）
-        'oann.com', // One America News（虚假信息）
-        'dailywire.com', // Daily Wire（强烈保守派）
-        'theblaze.com', // The Blaze（维基百科认定不可靠）
-        'redstate.com', // RedState（党派性强）
-        'thenationalpulse.com', // National Pulse（极右翼）
-        'thefederalist.com', // The Federalist（强烈保守派）
+            // === 英文媒体 ===
+            // 极右翼/阴谋论
+            'breitbart.com', // Breitbart News（已被维基百科弃用）
+            'infowars.com', // InfoWars（阴谋论）
+            'naturalnews.com', // Natural News（伪科学）
+            'globalresearch.ca', // Global Research（阴谋论，维基百科黑名单）
+            'zerohedge.com', // Zero Hedge（极端金融偏见）
+            'thegatewaypu<wbr>ndit.com', // Gateway Pundit（虚假新闻）
+            'newsmax.com', // Newsmax（强烈保守派偏见）
+            'oann.com', // One America News（虚假信息）
+            'dailywire.com', // Daily Wire（强烈保守派）
+            'theblaze.com', // The Blaze（维基百科认定不可靠）
+            'redstate.com', // RedState（党派性强）
+            'thenationalpulse.com', // National Pulse（极右翼）
+            'thefederalist.com', // The Federalist（强烈保守派）
 
-        // 极左翼
-        'dailykos.com', // Daily Kos（维基百科建议避免）
-        'alternet.org', // AlterNet（维基百科认定不可靠）
-        'commondreams.org', // Common Dreams（强烈左翼）
-        'thecanary.co', // The Canary（维基百科认定不可靠）
-        'occupy<wbr>democrats.com', // Occupy Democrats（党派性强）
-        'truthout.org', // Truthout（强烈左翼）
+            // 极左翼
+            'dailykos.com', // Daily Kos（维基百科建议避免）
+            'alternet.org', // AlterNet（维基百科认定不可靠）
+            'commondreams.org', // Common Dreams（强烈左翼）
+            'thecanary.co', // The Canary（维基百科认定不可靠）
+            'occupy<wbr>democrats.com', // Occupy Democrats（党派性强）
+            'truthout.org', // Truthout（强烈左翼）
 
-        // 小报和低质量新闻
-        'dailymail.co.uk', // Daily Mail（维基百科弃用）
-        'thesun.co.uk', // The Sun（小报）
-        'nypost.com', // New York Post（质量参差）
-        'express.co.uk', // Daily Express（维基百科认定不可靠）
-        'mirror.co.uk', // Daily Mirror（小报）
-        'dailystar.co.uk', // Daily Star（小报）
+            // 小报和低质量新闻
+            'dailymail.co.uk', // Daily Mail（维基百科弃用）
+            'thesun.co.uk', // The Sun（小报）
+            'nypost.com', // New York Post（质量参差）
+            'express.co.uk', // Daily Express（维基百科认定不可靠）
+            'mirror.co.uk', // Daily Mirror（小报）
+            'dailystar.co.uk', // Daily Star（小报）
 
-        // 讽刺/虚假新闻网站
-        'theonion.com', // The Onion（讽刺网站）
-        'clickhole.com', // ClickHole（讽刺）
-        'babylonbee.com', // Babylon Bee（讽刺）
-        'newspunch.com', // News Punch/Your News Wire（虚假新闻）
-        'beforeitsnews.com', // Before It's News（阴谋论）
+            // 讽刺/虚假新闻网站
+            'theonion.com', // The Onion（讽刺网站）
+            'clickhole.com', // ClickHole（讽刺）
+            'babylonbee.com', // Babylon Bee（讽刺）
+            'newspunch.com', // News Punch/Your News Wire（虚假新闻）
+            'beforeitsnews.com', // Before It's News（阴谋论）
 
-        // 俄罗斯国家媒体
-        'rt.com', // RT（Russia Today）
-        'sputniknews.com', // Sputnik News
-        'tass.com', // TASS（需谨慎）
+            // 俄罗斯国家媒体
+            'rt.com', // RT（Russia Today）
+            'sputniknews.com', // Sputnik News
+            'tass.com', // TASS（需谨慎）
 
-        // 其他问题网站
-        'wikileaks.org', // WikiLeaks（主要来源，需谨慎）
-        'mediabiasfactcheck.com', // Media Bias Fact Check（维基百科不建议引用）
-        'allsides.com' // AllSides（维基百科认为不可靠）
-      ]
-    };
-    // fetch请求
-    const response = await fetch(tavilyUrl, {
-      method: 'POST',
+            // 其他问题网站
+            'wikileaks.org', // WikiLeaks（主要来源，需谨慎）
+            'mediabiasfactcheck.com', // Media Bias Fact Check（维基百科不建议引用）
+            'allsides.com' // AllSides（维基百科认为不可靠）
+          ]
+        };
+
+        try {
+          const response = await fetch(tavilyUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + tavilyKey
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            console.error(
+              `Tavily API request failed for "${searchKeyword}":`,
+              response.status
+            );
+            return null;
+          }
+
+          return await response.json();
+        } catch (error) {
+          console.error(
+            `Error fetching Tavily results for "${searchKeyword}":`,
+            error
+          );
+          return null;
+        }
+      }
+    );
+
+    // 等待所有请求完成
+    const searchResults = await Promise.all(searchPromises);
+
+    // 过滤掉失败的请求，合并结果
+    const validResults = searchResults.filter(result => result !== null);
+
+    return new Response(JSON.stringify(validResults), {
+      status: 200,
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + tavilyKey
-      },
-      body: JSON.stringify(payload)
-    });
-    return new Response(response.body, {
-      status: response.status,
-      headers: response.headers
+        'Content-Type': 'application/json'
+      }
     });
   }
 
@@ -764,102 +800,178 @@ function replaceApiUrl(url) {
 
 function getTavilyPrompt(query) {
   const str = `
-你是一位AI聊天应用的前置助手（search-helper），专为调用Tavily搜索引擎API服务。你的核心职责是从用户的自然语言问句中，精准、高效地提炼出最适合搜索引擎查询的关键词字符串。
+你是一位AI聊天应用的前置助手（search-helper），专为调用Tavily搜索引擎API服务。你的核心职责是从用户的自然语言问句中，精准、高效地分析查询意图，并生成最适合的搜索策略。
 
 ## 核心使命
-你的存在是为了提升搜索引擎的调用效率和准确率。通过将用户的口语化、模糊的问题，转化为结构化、精确的搜索指令，你将直接优化用户的搜索体验并提供更相关的结果。
+你的存在是为了提升搜索引擎的调用效率和准确率。通过智能分析用户问题的复杂度、信息需求和最优搜索策略，你将直接优化用户的搜索体验并提供更相关的结果。
 
 ## 任务要求
-1.  **意图识别：** 首先判断用户输入是否为有信息检索意图的查询。对于闲聊、打招呼或无法转化为搜索请求的指令，应识别为"非搜索意图"。
-2.  **关键信息提炼：** 若为搜索查询，需仔细分析问句，识别出所有关键元素，包括但不限于：核心主题、实体（人名、地名、组织名）、具体对象、时间、事件、属性以及用户的真实意图。
-3.  **语言智能选择：** 根据查询内容的性质，智能判断应该使用何种语言生成搜索关键词，以获得最佳搜索结果。
-4.  **关键词生成：** 将提炼出的关键信息，依据下述原则，组合成一个简洁、无歧义且能最大化搜索效果的关键词字符串。
-5.  **格式化输出：** 你的唯一输出必须是一个独立的字符串。此字符串要么是生成的关键词，要么是"非搜索意图"的标识。禁止添加任何解释或额外的文本。
+1.  **意图识别：** 首先判断用户输入是否需要实时信息检索。
+    - **需要搜索**：时事新闻、实时数据、专业资料、产品信息、学术研究等
+    - **无需搜索**：日常问候、基本常识、简单计算、短文写作、情感交流、纯逻辑推理等
+2.  **复杂度评估：** 若需要搜索，判断问题的复杂程度：
+    - **简单问题**：单一明确的信息点（如"今日天气"、"某公司股价"）
+    - **复杂问题**：多维度信息需求（如"分析某行业发展趋势及面临挑战"）
+3.  **搜索策略制定：** 
+    - **简单问题**：生成1个精准关键词，建议返回5-10条结果
+    - **复杂问题**：拆解为2-3个搜索任务，每个任务覆盖问题的一个核心维度，建议返回15-20条结果
+4.  **语言智能选择：** 根据信息源特征选择最优搜索语言
+5.  **格式化输出：** 严格按照JSON格式输出，不包含任何解释文字
 
-## 关键词生成原则
-1.  **简洁至上：** 使用最少的词语表达最核心的意图。
-2.  **核心优先：** 优先提取代表核心主题的名词或实体（人名、地名、产品名、专业术语）。
-3.  **移除停用词：** 省略口语化的填充词、疑问词和无实际意义的助词（如"我想知道"、"...是什么"、"...怎么样"、"的"、"呢"、"吗"）。
-4.  **处理歧义：** 当用户输入存在歧义时（如"苹果"），结合上下文选择最有可能的解释（通常是科技公司而非水果）。
-5.  **处理否定/排除：** 将明确的排除性词语（如"除了..."、"不要..."）转化为搜索引擎可识别的排除操作符（如 \`-\` 符号）。
-
-## 🌐 语言选择策略（重要）
+## 🌐 语言选择策略
 根据查询内容的**信息源特征**智能选择关键词语言：
 
 ### 使用英文关键词的场景：
-- **国际财经资讯**：美股、欧股、国际油价、外汇、加密货币、国际大宗商品等
-- **国际科技动态**：硅谷科技公司、开源项目、国际学术论文、前沿技术等
-- **国际体育赛事**：NBA、英超、欧冠、温网、世界杯等
-- **国际娱乐资讯**：好莱坞、格莱美、奥斯卡、Billboard榜单等
-- **专业学术领域**：医学研究、物理学、化学、计算机科学等（优质文献多为英文）
-- **国际政治事件**：联合国、G7峰会、北约等国际组织相关
-- **全球品牌动态**：Apple、Microsoft、Tesla、Meta等国际公司的官方消息
+- **国际财经资讯**：美股、欧股、国际油价、外汇、加密货币、国际大宗商品
+- **国际科技动态**：硅谷科技公司、开源项目、国际学术论文、前沿技术
+- **国际体育赛事**：NBA、英超、欧冠、温网、世界杯
+- **国际娱乐资讯**：好莱坞、格莱美、奥斯卡、Billboard榜单
+- **专业学术领域**：医学研究、物理学、化学、计算机科学（优质文献多为英文）
+- **国际政治事件**：联合国、G7峰会、北约等国际组织
+- **全球品牌动态**：Apple、Microsoft、Tesla、Meta等国际公司
 
 ### 使用中文关键词的场景：
-- **中国本土资讯**：A股、港股、人民币、中国房地产、国内政策等
-- **中文娱乐圈**：华语电影、内地综艺、港台明星、国内音乐榜单等
-- **中国体育**：CBA、中超、国乒、中国女排等
-- **地方性事件**：特定城市新闻、地方政策、区域经济等
+- **中国本土资讯**：A股、港股、人民币、中国房地产、国内政策
+- **中文娱乐圈**：华语电影、内地综艺、港台明星、国内音乐榜单
+- **中国体育**：CBA、中超、国乒、中国女排
+- **地方性事件**：特定城市新闻、地方政策、区域经济
 - **中文互联网**：微博热搜、B站、小红书、抖音等平台内容
-- **中国传统文化**：中医、武术、书法、戏曲、节气等
+- **中国传统文化**：中医、武术、书法、戏曲、节气
 
 ### 判断要点：
 1. **信息源地域性**：优质信息主要来自哪个语言区域？
 2. **专业术语习惯**：该领域国际通用语言是什么？
 3. **时效性考量**：哪种语言能更快获取最新信息？
 
+## 关键词生成原则
+1.  **简洁至上**：使用最少的词语表达最核心的意图
+2.  **核心优先**：优先提取代表核心主题的名词或实体
+3.  **移除停用词**：省略口语化填充词、疑问词和无实际意义的助词
+4.  **处理歧义**：结合上下文选择最有可能的解释
+5.  **维度拆解**：复杂问题应拆解为多个独立的搜索维度
+
+## 输出格式规范
+
+你的输出应是一个JSON对象，包含以下两个键：
+
+1.  **search_queries**：字符串数组，包含1个或至多3个Tavily搜索关键词
+    - **复杂问题**：生成2-3个搜索关键词，覆盖问题的不同维度
+    - **简单问题**：生成1个精准搜索关键词
+    - **非搜索意图**：返回特殊值 \`["非搜索意图"]\`
+
+2.  **num_results**：整数，表示建议返回的搜索结果数量
+    - **复杂问题**：建议15-20条结果
+    - **简单问题**：建议5-10条结果
+    - **非搜索意图**：设为0
+
 ## 示例
 
-### 常规示例
-*   **用户输入：** "我想了解一下最新的人工智能发展趋势，特别是关于大型语言模型在医疗领域的应用。"
-*   **你的输出：** \`AI development trends large language models medical applications\`
+### 示例1：复杂问题（多维度搜索）
+**用户输入：** "分析一下人工智能在医疗健康领域的最新进展和面临的挑战"
+**你的输出：**
+\`\`\`json
+{
+  "search_queries": [
+    "AI healthcare recent breakthroughs 2024",
+    "challenges AI medical diagnosis implementation",
+    "AI drug discovery clinical trials"
+  ],
+  "num_results": 20
+}
+\`\`\`
 
-*   **用户输入：** "上海今天的天气怎么样？"
-*   **你的输出：** \`上海 今天 天气\`
+### 示例2：简单问题（单一信息点）
+**用户输入：** "10月30日美股收盘情况"
+**你的输出：**
+\`\`\`json
+{
+  "search_queries": [
+    "US stock market October 30 closing"
+  ],
+  "num_results": 5
+}
+\`\`\`
 
-*   **用户输入：** "推荐一些除了特斯拉以外的新能源汽车品牌。"
-*   **你的输出：** \`新能源汽车品牌 -特斯拉\`
+### 示例3：复杂问题（中文场景）
+**用户输入：** "比较一下今年A股和美股的表现，分析背后的原因"
+**你的输出：**
+\`\`\`json
+{
+  "search_queries": [
+    "A股 2024 年度表现 分析",
+    "US stock market 2024 performance analysis",
+    "A股 美股 对比 影响因素"
+  ],
+  "num_results": 18
+}
+\`\`\`
 
-*   **用户输入：** "分析一下苹果公司最近的财报表现。"
-*   **你的输出：** \`Apple earnings report latest financial performance\`
+### 示例4：简单问题（中文场景）
+**用户输入：** "上海今天的天气"
+**你的输出：**
+\`\`\`json
+{
+  "search_queries": [
+    "上海 今天 天气"
+  ],
+  "num_results": 5
+}
+\`\`\`
 
-*   **用户输入：** "你好呀！"
-*   **你的输出：** \`非搜索意图\`
+### 示例5：非搜索意图（问候）
+**用户输入：** "你好呀！"
+**你的输出：**
+\`\`\`json
+{
+  "search_queries": ["非搜索意图"],
+  "num_results": 0
+}
+\`\`\`
 
-### 语言选择示例
-*   **用户输入：** "10月30日美股收盘情况"
-*   **分析：** 美股属于国际财经，英文资讯更权威及时
-*   **你的输出：** \`US stock market October 30 closing\`
+### 示例6：非搜索意图（基本常识）
+**用户输入：** "1+1等于几？"
+**你的输出：**
+\`\`\`json
+{
+  "search_queries": ["非搜索意图"],
+  "num_results": 0
+}
+\`\`\`
 
-*   **用户输入：** "比特币最新价格走势"
-*   **分析：** 加密货币为国际市场，英文资讯更全面
-*   **你的输出：** \`Bitcoin price latest trend\`
+### 示例7：非搜索意图（短文写作）
+**用户输入：** "帮我写一段关于友谊的句子"
+**你的输出：**
+\`\`\`json
+{
+  "search_queries": ["非搜索意图"],
+  "num_results": 0
+}
+\`\`\`
 
-*   **用户输入：** "特朗普最新言论"
-*   **分析：** 国际政治人物，英文媒体报道更直接
-*   **你的输出：** \`Trump latest statement\`
-
-*   **用户输入：** "OpenAI最新模型发布"
-*   **分析：** 国际科技公司，英文官方信息更准确
-*   **你的输出：** \`OpenAI latest model release\`
-
-*   **用户输入：** "A股今日行情"
-*   **分析：** 中国本土市场，中文资讯更丰富
-*   **你的输出：** \`A股 今日 行情\`
-
-*   **用户输入：** "周杰伦新歌"
-*   **分析：** 华语娱乐圈，中文资讯为主
-*   **你的输出：** \`周杰伦 新歌\`
-
-*   **用户输入：** "Nature最新关于癌症的研究"
-*   **分析：** 国际顶级学术期刊，英文检索更精准
-*   **你的输出：** \`Nature latest cancer research\`
+### 示例8：中等复杂度问题
+**用户输入：** "OpenAI最新发布的模型有什么特点？"
+**你的输出：**
+\`\`\`json
+{
+  "search_queries": [
+    "OpenAI latest model release features",
+    "OpenAI new model performance comparison"
+  ],
+  "num_results": 12
+}
+\`\`\`
 
 ## 时间校准
 现在真实世界的时间是${new Date().toISOString()}。
 
 ## 用户输入
-「${query}」
+\`\`\`
+${query}
+\`\`\`
+
+---
+
+请严格按照JSON格式输出，不要添加任何其他文字说明。
   `;
   return str.trim();
 }
@@ -3649,9 +3761,15 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const isClickingSearchRes =
               blockquote && blockquote.innerText.startsWith('联网搜索：');
             if (!isClickingSearchRes) return;
-            const matches = new RegExp('「(.*?)」').exec(blockquote.innerText);
-            const query = matches && matches[1];
+            const idx = Array.from(blockquote.querySelectorAll('a')).indexOf(
+              target
+            );
+            const matches = blockquote.innerText.match(
+              new RegExp('「(.*?)」', 'g')
+            );
+            let query = matches && matches[idx];
             if (!query) return;
+            query = query.replace(/「|」/g, '').trim();
             this.showSearchRes(query);
           },
 
@@ -3973,14 +4091,15 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             }
 
             // 这里根据最新的问句, 调用/search接口查询语料
-            let searchQuery = '';
-            let searchResultsCount = 0;
+            let searchQueries = [];
+            let searchCounts = 0;
             if (this.needSearch) {
               let query = session.question2 || session.question;
               if (session.question2) {
-                query += '\\n\\n当前会话摘要：' + (session.summary || '');
+                query +=
+                  '\\n\\n当前会话摘要：“' + (session.summary || '') + '”';
               }
-              const searchRes = await fetch('/search', {
+              let searchResList = await fetch('/search', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -3989,19 +4108,30 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 body: JSON.stringify({ query })
               })
                 .then(res => res.json())
-                .catch(() => ({}));
+                .catch(() => []);
               const hasResult =
-                searchRes.results &&
-                searchRes.results.length &&
+                searchResList &&
+                searchResList.length &&
+                searchResList.some(i => i.results && i.results.length > 0) &&
                 JSON.stringify(searchRes).length > 40;
               if (hasResult) {
-                this.saveSearchRes(searchRes);
-                searchRes.results = searchRes.results.map(i => {
-                  const { url, score, raw_content, ...rest } = i;
-                  return { ...rest };
+                searchResList = searchResList.filter(
+                  r => r.results && r.results.length > 0
+                );
+                searchResList.forEach(r => {
+                  this.saveSearchRes(r);
                 });
-                searchQuery = searchRes.query || '';
-                searchResultsCount = searchRes.results.length;
+                searchResList.forEach(searchRes => {
+                  searchRes.results = searchRes.results.map(i => {
+                    const { url, score, raw_content, ...rest } = i;
+                    return { ...rest };
+                  });
+                });
+                searchQueries = searchResList.map(r => r.query);
+                searchCounts = searchResList.reduce(
+                  (acc, r) => acc + r.results.length,
+                  0
+                );
                 messages.push({
                   role: 'assistant',
                   content:
@@ -4062,13 +4192,15 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 const { done, value } = await reader.read();
 
                 // 显示搜索结果数量（如果有）
-                if (searchResultsCount > 0 && !this.streamingContent) {
+                if (hasResult && !this.streamingContent) {
                   this.streamingContent =
-                    '> 联网搜索：「' +
-                    searchQuery +
-                    '」\\n> \\n> AI 模型通过实时调用 Tavily 搜索引擎，找到了 [' +
-                    searchResultsCount +
-                    '](javascript:void(0)) 条相关信息。\\n\\n';
+                    '> 联网搜索：' +
+                    searchQueries.map(q => '「' + q + '」').join('、') +
+                    '\\n> \\n> AI 模型通过实时调用 Tavily 搜索引擎，找到了 ' +
+                    searchCounts
+                      .map(c => '[' + c + '](javascript:void(0))')
+                      .join('、') +
+                    ' 条相关信息。\\n\\n';
                 }
                 if (done) break;
 
@@ -4158,6 +4290,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const KEY = 'openai_search_results';
             const query = res && res.query;
             if (!query) return;
+            if (!res.results || res.results.length === 0) return;
             let cache = localStorage.getItem(KEY);
             if (cache) {
               try {
