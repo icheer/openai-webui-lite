@@ -4192,7 +4192,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 const { done, value } = await reader.read();
 
                 // 显示搜索结果数量（如果有）
-                if (hasResult && !this.streamingContent) {
+                if (searchQueries.length && !this.streamingContent) {
                   this.streamingContent =
                     '> 联网搜索：' +
                     searchQueries.map(q => '「' + q + '」').join('、') +
