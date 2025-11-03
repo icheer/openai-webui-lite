@@ -4128,9 +4128,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   });
                 });
                 searchQueries = searchResList.map(r => r.query);
-                searchCounts = searchResList.reduce(
-                  (acc, r) => acc + r.results.length,
-                  0
+                searchCounts = searchResList.map(
+                  r => (r.results && r.results.length) || 0
                 );
                 messages.push({
                   role: 'assistant',
