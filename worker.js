@@ -2849,20 +2849,14 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             </h3>
             <div
               style="
-                padding: 12px;
+                padding: 0 12px;
+                margin: 12px 0;
                 background: #fff3cd;
                 border-radius: 8px;
                 border-left: 4px solid #ffc107;
                 line-height: 1.6;
                 color: #666;
                 font-size: 14px;
-                max-height: 7.5em;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                display: -webkit-box;
-                line-clamp: 5;
-                -webkit-line-clamp: 5;
-                -webkit-box-orient: vertical;
               "
             >
               {{ searchRes.answer }}
@@ -2916,13 +2910,19 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   color: #666;
                   font-size: 13px;
                   line-height: 1.5;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  display: -webkit-box;
+                  line-clamp: 5;
+                  -webkit-line-clamp: 5;
+                  -webkit-box-orient: vertical;
                 "
               >
                 {{ result.content.length > 300 ? result.content.slice(0, 300) +
                 '...' : result.content }}
               </div>
 
-              <div v-if="result.url" style="margin-top: 8px; line-height: 1">
+              <div v-if="result.url" style="margin-top: 8px; line-height: 1.15">
                 <a
                   :href="result.url"
                   target="_blank"
