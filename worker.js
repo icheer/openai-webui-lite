@@ -762,10 +762,10 @@ function getLiteModelId(modelIds) {
     .map(i => i.trim().split(':')[0])
     .filter(i => i);
   const parts = [
-    '-nano',
     '-mini',
-    '-flash',
+    '-nano',
     '-lite',
+    '-flash',
     '-instruct',
     '-4o',
     '-k2',
@@ -1999,8 +1999,12 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         max-width: 90vw !important;
         max-height: 90vh !important;
         object-fit: contain !important;
-        margin-top: 3em !important;
+        margin-top: 2.5em !important;
         margin-bottom: 0 !important;
+      }
+
+      .swal2-popup:has(.swal-image-preview) {
+        padding-bottom: 0 !important;
       }
 
       .loading {
@@ -4559,6 +4563,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
