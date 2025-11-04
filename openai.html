@@ -2227,10 +2227,8 @@
           async handlePaste(event) {
             const clipboardData = event.clipboardData || window.clipboardData;
             if (!clipboardData) return;
-            const items = [...(clipboardData.items || [])];
-            if (!items.length) return;
-
-            await this.preheatImageUploadService();
+            const items = clipboardData.items;
+            if (!items || !items.length) return;
 
             // 遍历剪贴板项目，查找图片
             for (let i = 0; i < items.length; i++) {
@@ -2266,6 +2264,9 @@
                   return;
                 }
 
+                if (i === 0) {
+                  await this.preheatImageUploadService();
+                }
                 // 上传图片
                 await this.uploadImageFile(file);
                 return; // 只处理第一张图片
