@@ -3465,6 +3465,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           // 触发图片上传
           triggerImageUpload() {
             if (this.uploadedImages.length >= 2) return;
+            this.preheatImageUploadService();
             this.$refs.imageInput.click();
           },
 
