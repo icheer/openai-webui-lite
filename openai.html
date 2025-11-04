@@ -2218,17 +2218,19 @@
           // 预先调用上传图片服务的/health接口,以减少首次上传延迟
           async preheatImageUploadService() {
             if (!this.isMySite) return;
-            return fetch('https://pic.keyi.ma/health').catch(() => {});
+            return fetch('https://pic.keyi.ma/health')
+              .then(() => {})
+              .catch(() => {});
           },
 
           // 处理粘贴事件
           async handlePaste(event) {
-            await this.preheatImageUploadService();
             const clipboardData = event.clipboardData || window.clipboardData;
             if (!clipboardData) return;
+            const items = [...(clipboardData.items || [])];
+            if (!items.length) return;
 
-            const items = clipboardData.items;
-            if (!items) return;
+            await this.preheatImageUploadService();
 
             // 遍历剪贴板项目，查找图片
             for (let i = 0; i < items.length; i++) {
