@@ -2005,6 +2005,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
       .swal2-popup:has(.swal-image-preview) {
         padding-bottom: 0 !important;
+        overflow: hidden !important;
       }
 
       .loading {
@@ -3053,6 +3054,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           hostname() {
             return window.location.hostname;
           },
+          isMySite() {
+            return this.hostname.endsWith('.keyi.ma');
+          },
           currentSession() {
             return this.sessions.find(s => s.id === this.currentSessionId);
           },
@@ -3100,8 +3104,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           },
           canUploadImage() {
             const isModelSupport = /(gpt|qwen|kimi)/.test(this.selectedModel);
-            const isMySite = this.hostname.endsWith('.keyi.ma');
-            return isModelSupport && isMySite;
+            return isModelSupport && this.isMySite;
           }
         },
         async mounted() {
@@ -3465,8 +3468,15 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             this.$refs.imageInput.click();
           },
 
+          // 预先调用上传图片服务的/health接口,以减少首次上传延迟
+          async preheatImageUploadService() {
+            if (!this.isMySite) return;
+            return fetch('https://pic.keyi.ma/health').catch(() => {});
+          },
+
           // 处理粘贴事件
           async handlePaste(event) {
+            await this.preheatImageUploadService();
             const clipboardData = event.clipboardData || window.clipboardData;
             if (!clipboardData) return;
 
@@ -3664,6 +3674,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             this.isMobile = isUaMobile || isSizeMobile;
             if (this.isMobile) {
               document.body.className = 'mobile';
+              this.showSidebar = false;
               return true;
             } else {
               document.body.className = 'pc';
@@ -4563,7 +4574,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
-
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);

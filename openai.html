@@ -751,6 +751,7 @@
 
       .swal2-popup:has(.swal-image-preview) {
         padding-bottom: 0 !important;
+        overflow: hidden !important;
       }
 
       .loading {
@@ -1799,6 +1800,9 @@
           hostname() {
             return window.location.hostname;
           },
+          isMySite() {
+            return this.hostname.endsWith('.keyi.ma');
+          },
           currentSession() {
             return this.sessions.find(s => s.id === this.currentSessionId);
           },
@@ -1846,8 +1850,7 @@
           },
           canUploadImage() {
             const isModelSupport = /(gpt|qwen|kimi)/.test(this.selectedModel);
-            const isMySite = this.hostname.endsWith('.keyi.ma');
-            return isModelSupport && isMySite;
+            return isModelSupport && this.isMySite;
           }
         },
         async mounted() {
@@ -2211,8 +2214,15 @@
             this.$refs.imageInput.click();
           },
 
+          // 预先调用上传图片服务的/health接口,以减少首次上传延迟
+          async preheatImageUploadService() {
+            if (!this.isMySite) return;
+            return fetch('https://pic.keyi.ma/health').catch(() => {});
+          },
+
           // 处理粘贴事件
           async handlePaste(event) {
+            await this.preheatImageUploadService();
             const clipboardData = event.clipboardData || window.clipboardData;
             if (!clipboardData) return;
 
@@ -2410,6 +2420,7 @@
             this.isMobile = isUaMobile || isSizeMobile;
             if (this.isMobile) {
               document.body.className = 'mobile';
+              this.showSidebar = false;
               return true;
             } else {
               document.body.className = 'pc';
