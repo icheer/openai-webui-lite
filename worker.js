@@ -1999,6 +1999,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         max-width: 90vw !important;
         max-height: 90vh !important;
         object-fit: contain !important;
+        margin-top: 3em !important;
+        margin-bottom: 0 !important;
       }
 
       .loading {
@@ -4557,7 +4559,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
-
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
