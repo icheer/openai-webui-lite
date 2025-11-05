@@ -2169,6 +2169,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       }
 
       .role-textarea {
+        position: relative;
         width: 100%;
         min-height: 90px;
         max-height: 30vh;
@@ -2184,6 +2185,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       .role-textarea:focus {
         outline: none;
         border-color: #a8edea;
+      }
+
+      .role-textarea[disabled] {
+        color: rgba(0, 0, 0, 0.3);
       }
 
       .copy-btn,
@@ -2427,21 +2432,32 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               "
             >
               <span>角色设定 (可选):</span>
-              <button
-                v-if="globalRolePrompt"
-                class="reset-btn"
-                @click="clearRolePrompt"
-                title="清空角色设定"
-              >
-                清空
-              </button>
+              <span>
+                <button
+                  v-if="globalRolePrompt && globalRolePromptEnabled"
+                  class="reset-btn"
+                  @click="clearRolePrompt"
+                  title="清空角色设定"
+                >
+                  清空
+                </button>
+                <button
+                  v-if="globalRolePrompt"
+                  class="reset-btn"
+                  :title="globalRolePromptEnabled ? '禁用角色设定' : '启用角色设定'"
+                  @click="toggleRolePrompt()"
+                >
+                  {{ globalRolePromptEnabled ? '禁用' : '启用' }}
+                </button>
+              </span>
             </label>
             <textarea
               id="rolePrompt"
               v-model="globalRolePrompt"
-              @input="updateGlobalRolePrompt"
               class="role-textarea"
+              :disabled="!globalRolePromptEnabled && globalRolePrompt.length > 0"
               placeholder="输入系统提示词或角色设定..."
+              @input="updateGlobalRolePrompt"
             >
             </textarea>
           </div>
@@ -3036,6 +3052,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             isFoldRole: false,
             isCapturing: false,
             globalRolePrompt: '',
+            globalRolePromptEnabled: true,
             isMobile: window.innerWidth <= 768,
             showSidebar: false,
             isStreaming: false,
@@ -3268,6 +3285,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             this.globalRolePrompt =
               (await window.openaiDB.getItem('openai_global_role_prompt')) ||
               '';
+            this.globalRolePromptEnabled =
+              (await window.openaiDB.getItem(
+                'openai_global_role_prompt_enabled'
+              )) !== false;
 
             // 加载会话数据
             const savedSessions = await window.openaiDB.getItem(
@@ -3451,14 +3472,28 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           },
 
           async updateGlobalRolePrompt() {
+            if (!this.globalRolePrompt && !this.globalRolePromptEnabled) {
+              this.globalRolePromptEnabled = true;
+              return;
+            }
             await window.openaiDB.setItem(
               'openai_global_role_prompt',
               this.globalRolePrompt
+            );
+            await window.openaiDB.setItem(
+              'openai_global_role_prompt_enabled',
+              this.globalRolePromptEnabled
             );
           },
 
           clearRolePrompt() {
             this.globalRolePrompt = '';
+            this.globalRolePromptEnabled = true;
+            this.updateGlobalRolePrompt();
+          },
+
+          toggleRolePrompt() {
+            this.globalRolePromptEnabled = !this.globalRolePromptEnabled;
             this.updateGlobalRolePrompt();
           },
 
@@ -3948,7 +3983,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               this.createNewSession();
             }
             const session = this.currentSession;
-            session.role = this.globalRolePrompt.trim();
+            if (this.globalRolePromptEnabled) {
+              session.role = this.globalRolePrompt.trim();
+            }
 
             // 判断是第一轮or第二轮问答
             if (!session.answer) {
@@ -3980,7 +4017,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             this.abortController = new AbortController();
 
             // 组装messages - OpenAI格式
-            if (this.globalRolePrompt.trim()) {
+            if (this.globalRolePromptEnabled && this.globalRolePrompt.trim()) {
               const needAssistant = /claude|gpt5/i.test(this.selectedModel);
               messages.push({
                 role: !needAssistant ? 'system' : 'assistant',
