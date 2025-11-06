@@ -2866,7 +2866,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               新会话
             </button>
             <button
-              v-else-if="isLoading || isStreaming"
+              v-else-if="(isLoading || isStreaming) && isSentForAWhile"
               class="send-btn danger"
               @click="cancelStreaming"
             >
@@ -3082,6 +3082,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             apiKey: '',
             messageInput: '',
             isLoading: false,
+            isSentForAWhile: false,
             errorMessage: '',
             selectedModel: 'gpt-5-mini',
             availableModels: ['$MODELS_PLACEHOLDER$'],
@@ -4061,6 +4062,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const messages = [];
             this.isLoading = true;
             this.isStreaming = false;
+            this.isSentForAWhile = false;
+            this.sleep(2000).then(() => {
+              this.isSentForAWhile = true;
+            });
             this.streamingContent = '';
             this.abortController = new AbortController();
 
