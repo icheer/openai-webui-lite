@@ -8,22 +8,22 @@
 一个简单易用的 Deno Deploy / Cloudflare Worker 程序，让您能够快速部署自己的 OpenAI API 代理服务。只需要一个域名和 OpenAI API Key，即可免费为家人朋友提供 AI 问答服务。
 
 > 🎯 **何种情况下推荐使用 Deno Deploy 部署**  
-> Deno Deploy 部署简单快捷，且在中国境内（及港澳地区）没有边缘节点，因此可以流畅代理请求发往 OpenAI、Gemini 官方 API 而不会因地区原因遭到拒绝。 因此代理上述官方 API 时首选 Deno Deploy 方式部署。  
+> Deno Deploy 部署简单快捷，且在中国境内（及港澳地区）没有边缘节点，因此可以流畅代理请求发往 OpenAI、Gemini 官方 API 而不会因地区原因遭到拒绝。 因此代理上述官方 API 时首选 Deno Deploy 方式部署。
 
 > ⚠️ **中国大陆访问注意事项**  
 > 由于 Deno Deploy 的 IPv4 地址在中国大陆地区无法直接访问，即使使用自定义域名 CNAME 解析也无法绕过此限制。如需确保中国大陆地区用户正常访问，建议将域名托管至 Cloudflare，并在 DNS 设置中启用代理模式（橙色云朵图标），通过 Cloudflare CDN 进行流量代理，代理至 Deno Deploy 的 IP。
 
-> 💡 **推荐使用心流AI获取免费API**  
-> 推荐使用阿里巴巴旗下的 [心流AI](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 获取免费的国产开源大模型 API Key。
-> 
-> - **API文档**: [https://platform.iflow.cn/docs/](https://platform.iflow.cn/docs/)
+> 💡 **推荐使用心流 AI 获取免费 API**  
+> 推荐使用阿里巴巴旗下的 [心流 AI](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 获取免费的国产开源大模型 API Key。
+>
+> - **API 文档**: [https://platform.iflow.cn/docs/](https://platform.iflow.cn/docs/)
 > - **API_BASE**: `https://apis.iflow.cn`
 > - **API_KEYS**: 在 [心流 - 我的账户](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting) 注册后申请
 > - **可用模型**: Qwen3-Max、Qwen3-Coder-Plus、Qwen3-VL-Plus、GLM-4.6、Kimi-K2、DeepSeek-V3.2-Exp、DeepSeek-R1 等国产大模型 ([完整列表](https://platform.iflow.cn/models))
-> - **注意事项**: 
+> - **注意事项**:
 >   - 心流的 API Key 会在一段时间（约为七天）后自动过期（防滥用措施），过期后需在设置页面手动重置
 >   - 每个 Key 最多同时发起一个请求，超出限制会返回 429 错误码
->   - 如果使用心流AI则更推荐 Cloudflare Workers 部署
+>   - 如果使用心流 AI 则更推荐 Cloudflare Workers 部署
 
 请合理使用 AI 资源，避免滥用！
 
@@ -36,7 +36,7 @@
 - 📱 **响应式设计** - 完美适配桌面端和移动端
 - 💾 **本地存储** - 基于 IndexedDB 的持久化历史记录
 - 🎨 **极简界面** - 养老版 OpenAI Chat，简洁易用
-- 🌐 **多模型支持** - 支持 GPT、Gemini、Qwen 等多种AI模型
+- 🌐 **多模型支持** - 支持 GPT、Gemini、Qwen 等多种 AI 模型
 - 🔍 **联网搜索** - 集成 Tavily 搜索，为 AI 提供实时网络信息
 - 📸 **分享问答** - 一键生成问答截图，方便社交分享
 - 🏷️ **智能命名** - 根据问答内容自动生成会话标题，便于查找管理
@@ -128,7 +128,7 @@
    - 访问您的 Deno Deploy 域名（如：`https://your-project.deno.dev`）
    - 或访问您的自定义域名
    - 输入共享密码测试功能
-   - 后续为确保国内免科学访问，需套用Cloudflare CDN
+   - 后续为确保国内免科学访问，需套用 Cloudflare CDN
 
 **🛠️ 方式二：Cloudflare Workers（备选）**
 
@@ -278,14 +278,15 @@ curl -X POST "https://your-domain.com/v1/chat/completions" \
 
 以下是常见 API 提供商的配置示例，帮助您快速配置环境变量：
 
-| API 提供商 | API_BASE | API_KEYS 示例 | MODEL_IDS 示例 | 备注 |
-|-----------|----------|--------------|---------------|------------|
-| **OpenAI 官方** | `https://api.openai.com` | `sk-proj-xxxxxx` | `gpt-4o,gpt-4o-mini,o1-preview,o1-mini` | 官方 API |
-| **Google Gemini** | `https://generativelanguage.googleapis.com` | `AIzaSyxxxxx1,AIzaSyxxxxx2` | `gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-lite` | 需使用 Gemini API 格式，推荐 Deno Deploy 部署 |
-| **心流 AI** | `https://apis.iflow.cn` | sk-xxxx1,sk-xxxx2 | `qwen3-max,glm-4.6,kimi-k2,deepseek-v3.2-exp=DeepSeek V3.2` | 可以通过 `等号=` 自定义界面上外显的模型名称 |
-| **API 中转商 A** | `https://api.example.com` | `sk-xxxxxx` | 根据中转商提供的模型列表 | 第三方中转，注意服务稳定性和隐私 |
+| API 提供商        | API_BASE                                    | API_KEYS 示例               | MODEL_IDS 示例                                                              | 备注                                          |
+| ----------------- | ------------------------------------------- | --------------------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
+| **OpenAI 官方**   | `https://api.openai.com`                    | `sk-proj-xxxxxx`            | `gpt-4o,gpt-4o-mini,o1-preview,o1-mini`                                     | 官方 API                                      |
+| **Google Gemini** | `https://generativelanguage.googleapis.com` | `AIzaSyxxxxx1,AIzaSyxxxxx2` | `gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-lite`                     | 需使用 Gemini API 格式，推荐 Deno Deploy 部署 |
+| **心流 AI**       | `https://apis.iflow.cn`                     | sk-xxxx1,sk-xxxx2           | `qwen3-max,glm-4.6,kimi-k2,deepseek-v3.2-exp=DeepSeek V3.2`                 | 可以通过 `等号=` 自定义界面上外显的模型名称   |
+| **API 中转商 A**  | `https://api.example.com`                   | `sk-xxxxxx`                 | `claude-sonnet-4.5,gemini-3-pro-preview-11-2025` (根据中转商提供的模型列表) | 第三方中转，注意服务稳定性和隐私              |
 
 **配置说明：**
+
 - OpenAI 官方：建议使用 Deno Deploy 部署 worker
 - Google AiStudio 官方（Gemini）：需要使用 Google AI Studio 获取 API Key，适合使用 Gemini 系列模型，建议使用 Deno Deploy 部署 worker
 - 心流 AI：国内免费额度，适合体验国产大模型，Key 有效期约 7 天，Cloudflare Workers 部署即可
