@@ -280,7 +280,7 @@ async function handleRequest(request, env = {}) {
     return new Response(htmlContent, {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8',
-        'Cache-Control': 'public, max-age=43200' // 缓存12小时
+        'Cache-Control': 'public, no-transform, max-age=14400' // 缓存4小时
       }
     });
   }
@@ -4656,14 +4656,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           }
         }
       }).mount('#app');
-      const removeCfScript = ms => {
-        setTimeout(() => {
-          const script = document.querySelector('body > script[integrity]');
-          script && script.remove();
-        }, ms);
-      };
-      removeCfScript(0);
-      removeCfScript(5);
     </script>
   </body>
 </html>

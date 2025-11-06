@@ -3402,14 +3402,6 @@
           }
         }
       }).mount('#app');
-      const removeCfScript = ms => {
-        setTimeout(() => {
-          const script = document.querySelector('body > script[integrity]');
-          script && script.remove();
-        }, ms);
-      };
-      removeCfScript(0);
-      removeCfScript(5);
     </script>
   </body>
 </html>
