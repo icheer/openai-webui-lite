@@ -278,12 +278,12 @@ curl -X POST "https://your-domain.com/v1/chat/completions" \
 
 以下是常见 API 提供商的配置示例，帮助您快速配置环境变量：
 
-| API 提供商        | API_BASE                                    | API_KEYS 示例               | MODEL_IDS 示例                                                              | 备注                                          |
-| ----------------- | ------------------------------------------- | --------------------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
-| **OpenAI 官方**   | `https://api.openai.com`                    | `sk-proj-xxxxxx`            | `gpt-4o,gpt-4o-mini,o1-preview,o1-mini`                                     | 官方 API                                      |
-| **Google Gemini** | `https://generativelanguage.googleapis.com` | `AIzaSyxxxxx1,AIzaSyxxxxx2` | `gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-lite`                     | 需使用 Gemini API 格式，推荐 Deno Deploy 部署 |
-| **心流 AI**       | `https://apis.iflow.cn`                     | sk-xxxx1,sk-xxxx2           | `qwen3-max,glm-4.6,kimi-k2,deepseek-v3.2-exp=DeepSeek V3.2`                 | 可以通过 `等号=` 自定义界面上外显的模型名称   |
-| **API 中转商 A**  | `https://api.example.com`                   | `sk-xxxxxx`                 | `claude-sonnet-4.5,gemini-3-pro-preview-11-2025` (根据中转商提供的模型列表) | 第三方中转，注意服务稳定性和隐私              |
+| API 提供商        | API_BASE                                    | API_KEYS 示例               | MODEL_IDS 示例                                                              | 备注                                        |
+| ----------------- | ------------------------------------------- | --------------------------- | --------------------------------------------------------------------------- | ------------------------------------------- |
+| **OpenAI 官方**   | `https://api.openai.com`                    | `sk-proj-xxxxxx`            | `gpt-4o,gpt-4o-mini,o1-preview,o1-mini`                                     | 官方 API                                    |
+| **Google Gemini** | `https://generativelanguage.googleapis.com` | `AIzaSyxxxxx1,AIzaSyxxxxx2` | `gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-lite`                     | 官方 API                                    |
+| **心流 AI**       | `https://apis.iflow.cn`                     | sk-xxxx1,sk-xxxx2           | `qwen3-max,glm-4.6,kimi-k2,deepseek-v3.2-exp=DeepSeek V3.2`                 | 可以通过 `等号=` 自定义界面上外显的模型名称 |
+| **API 中转商 A**  | `https://api.example.com`                   | `sk-xxxxxx`                 | `claude-sonnet-4.5,gemini-3-pro-preview-11-2025` (根据中转商提供的模型列表) | 第三方中转，注意服务稳定性和隐私            |
 
 **配置说明：**
 
