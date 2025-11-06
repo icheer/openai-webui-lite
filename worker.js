@@ -1863,6 +1863,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         box-shadow: 0 2px 4px rgba(66, 153, 225, 0.3);
       }
 
+      .send-btn.danger {
+        background: #dc3545;
+        color: white;
+      }
+
       .send-btn:hover:not(:disabled) {
         background: #3182ce;
         transform: translateY(-1px);
@@ -2397,9 +2402,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       <div class="container">
         <!-- 侧边栏 -->
         <div
+          v-show="true"
           class="sidebar"
           :class="{ show: showSidebar || !isMobile, mobile: isMobile }"
           v-cloak
+          style="display: none"
         >
           <!-- API Key 设置 -->
           <div class="api-key-section">
@@ -2431,8 +2438,19 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 font-weight: 500;
               "
             >
-              <span>角色设定 (可选):</span>
               <span>
+                <span>角色设定&nbsp;</span>
+                <span v-if="!globalRolePromptEnabled">(已禁用):</span>
+                <span v-else-if="!globalRolePrompt">(可选):</span>
+                <span v-else="">(已启用):</span>
+              </span>
+              <span>
+                <button
+                  class="reset-btn"
+                  style="visibility: hidden; pointer-events: none"
+                >
+                  　
+                </button>
                 <button
                   v-if="globalRolePrompt && globalRolePromptEnabled"
                   class="reset-btn"
@@ -2835,6 +2853,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               新会话
             </button>
             <button
+              v-else-if="isLoading || isStreaming"
+              class="send-btn danger"
+              @click="cancelStreaming"
+            >
+              中止
+            </button>
+            <button
               v-else
               @click="sendMessage"
               :disabled="!canSend"
@@ -3079,7 +3104,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           },
           isCurrentEnd() {
             const session = this.currentSession;
-            return session && session.answer && session.answer2;
+            if (!session) return false;
+            return (
+              !this.isLoading &&
+              !this.isStreaming &&
+              session.answer &&
+              session.answer2
+            );
           },
           isTotallyBlank() {
             const list = this.sessions || [];
