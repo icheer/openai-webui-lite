@@ -81,7 +81,7 @@
    - 注册账号并获取 API Key
    - 配置后可在问答时勾选"联网搜索"，为 AI 提供实时网络信息
 
-3. **准备域名（可选）**
+3. **准备域名**
    - 拥有一个域名（可以是免费域名）
    - 用于绑定到部署服务
 
@@ -104,12 +104,12 @@
    - 设置入口文件为 `worker.js`
    - 点击 "Deploy"
 
-3. **配置环境变量（可选但推荐）**
+3. **配置环境变量（推荐）**
 
    - 在 Deno Deploy 项目设置中添加环境变量：
      - `SECRET_PASSWORD`: 共享密码
      - `API_KEYS`: API Key 列表（逗号分隔）
-     - `MODEL_IDS`: 支持的模型列表（逗号分隔，可选）
+     - `MODEL_IDS`: 支持的模型列表（必需，逗号分隔）
      - `API_BASE`: OpenAI API 基础地址（可选，默认 `https://api.openai.com`）
      - `DEMO_PASSWORD`: 临时演示密码（可选）
      - `DEMO_MAX_TIMES_PER_HOUR`: 演示密码每小时调用次数限制（可选，默认 15 次）
@@ -117,7 +117,7 @@
      - `TITLE`: 用于自定义网站标题及 Favicon
    - 环境变量优先级高于代码中的硬编码值
 
-4. **绑定自定义域名（可选，推荐）**
+4. **绑定自定义域名（推荐）**
 
    - 在项目设置中点击 "Domains"
    - 添加您的自定义域名
@@ -148,7 +148,7 @@
    ```javascript
    const SECRET_PASSWORD = 'your-shared-password'; // 设置共享密码
    const API_KEYS = 'sk-key1,sk-key2,sk-key3'; // API Key 列表，逗号分隔
-   const MODEL_IDS = 'gpt-5-pro,gpt-5,gpt-5-mini'; // 支持的模型列表（可选）
+   const MODEL_IDS = 'gpt-5-pro,gpt-5,gpt-5-mini'; // 支持的模型列表（必需）
    const API_BASE = 'https://api.openai.com'; // API 基础地址（可选）
    ```
 
@@ -267,12 +267,29 @@ curl -X POST "https://your-domain.com/v1/chat/completions" \
 
 - `SECRET_PASSWORD`: 共享密码，用于正常无限制访问
 - `API_KEYS`: OpenAI API Key 列表，多个用逗号分隔
-- `MODEL_IDS`: 支持的模型列表，多个用逗号分隔（可选）
+- `MODEL_IDS`: 支持的模型列表，多个用逗号分隔（必需）
 - `API_BASE`: OpenAI API 基础地址（可选，默认 `https://api.openai.com`）
 - `DEMO_PASSWORD`: 临时演示密码，有调用次数限制（可选）
 - `DEMO_MAX_TIMES_PER_HOUR`: 演示密码每小时最大调用次数（默认 15 次）
 - `TAVILY_KEYS`: Tavily API Key 列表，用于联网搜索功能，多个用逗号分隔（可选）
 - `TITLE`: 自定义 Web 界面标题和 Favicon（可选，默认 `OpenAI Chat`）
+
+### 不同 API 提供商配置示例
+
+以下是常见 API 提供商的配置示例，帮助您快速配置环境变量：
+
+| API 提供商 | API_BASE | API_KEYS 示例 | MODEL_IDS 示例 | 备注 |
+|-----------|----------|--------------|---------------|------------|
+| **OpenAI 官方** | `https://api.openai.com` | `sk-proj-xxxxxx` | `gpt-4o,gpt-4o-mini,o1-preview,o1-mini` | 官方 API |
+| **Google Gemini** | `https://generativelanguage.googleapis.com` | `AIzaSyxxxxx1,AIzaSyxxxxx2` | `gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-lite` | 需使用 Gemini API 格式，推荐 Deno Deploy 部署 |
+| **心流 AI** | `https://apis.iflow.cn` | sk-xxxx1,sk-xxxx2 | `qwen3-max,glm-4.6,kimi-k2,deepseek-v3.2-exp=DeepSeek V3.2` | 可以通过 `等号=` 自定义界面上外显的模型名称 |
+| **API 中转商 A** | `https://api.example.com` | `sk-xxxxxx` | 根据中转商提供的模型列表 | 第三方中转，注意服务稳定性和隐私 |
+
+**配置说明：**
+- OpenAI 官方：建议使用 Deno Deploy 部署 worker
+- Google AiStudio 官方（Gemini）：需要使用 Google AI Studio 获取 API Key，适合使用 Gemini 系列模型，建议使用 Deno Deploy 部署 worker
+- 心流 AI：国内免费额度，适合体验国产大模型，Key 有效期约 7 天，Cloudflare Workers 部署即可
+- API 中转商：第三方服务，大部分都兼容 OpenAI API 格式
 
 **Deno Deploy 环境变量设置：**
 
@@ -280,7 +297,7 @@ curl -X POST "https://your-domain.com/v1/chat/completions" \
 2. 添加以下环境变量：
    - `SECRET_PASSWORD`: 共享密码，如 `mypassword123`
    - `API_KEYS`: API Key 列表，多个用逗号分隔，如 `sk-key1,sk-key2,sk-key3`
-   - `MODEL_IDS`: 模型列表，如 `gpt-5-pro,gpt-5,gpt-5-mini`（可选）
+   - `MODEL_IDS`: 模型列表，如 `gpt-5-pro,gpt-5,gpt-5-mini`（必需）
    - `API_BASE`: 如 `https://api.openai.com`（可选）
    - `DEMO_PASSWORD`: 演示密码，如 `demo123`（可选）
    - `DEMO_MAX_TIMES_PER_HOUR`: 如 `10`（可选，默认 15）
@@ -307,7 +324,7 @@ const SECRET_PASSWORD = 'your-shared-password';
 // OpenAI API Key 列表 - 多个用逗号分隔，支持自动轮换，不建议这样明文写在代码里，谨防Key泄露！
 const API_KEYS = 'sk-key1,sk-key2,sk-key3';
 
-// 支持的模型列表 - 多个用逗号分隔（可选）
+// 支持的模型列表 - 多个用逗号分隔（必需）
 const MODEL_IDS = 'gpt-5-pro,gpt-5,gpt-5-mini';
 
 // OpenAI API 基础地址（可选）
