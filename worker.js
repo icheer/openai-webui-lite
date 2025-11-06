@@ -3774,6 +3774,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             }
             this.isStreaming = false;
             this.isLoading = false;
+            const sessiong = this.currentSession;
+            const answerKey = session.question2 ? 'answer2' : 'answer';
+            this.currentSession[answerKey] = this.streamingContent;
+            this.saveData();
             this.streamingContent = '';
           },
 
@@ -4201,7 +4205,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 messages.push({
                   role: 'user',
                   content:
-                    '强调：这不是虚构的未来时间，现在真实世界的时间是： ' +
+                    '好的。我强调一下：这不是虚构的未来时间，现在真实世界的时间是： ' +
                     new Date().toDateString() +
                     ' ' +
                     new Date().toTimeString() +
@@ -4311,7 +4315,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
               // 流式完成
               const answerKey = session.question2 ? 'answer2' : 'answer';
-              // marked.js 原生支持嵌套列表，无需预处理
               this.currentSession[answerKey] = this.streamingContent;
               this.saveData();
             } catch (error) {
