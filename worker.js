@@ -2447,7 +2447,14 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               <span>
                 <button
                   class="reset-btn"
-                  style="visibility: hidden; pointer-events: none"
+                  style="
+                    width: 0;
+                    padding-left: 0;
+                    padding-right: 0;
+                    margin-left: 0;
+                    visibility: hidden;
+                    pointer-events: none;
+                  "
                 >
                   　
                 </button>
