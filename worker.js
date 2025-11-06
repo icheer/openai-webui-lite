@@ -3777,7 +3777,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           cancelStreaming() {
             if (this.abortController) {
               this.abortController.abort();
-              this.abortController = null;
+              this.abortController = undefined;
             }
             this.isStreaming = false;
             this.isLoading = false;
@@ -4226,8 +4226,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             }
 
             try {
-              const url = '/v1/chat/completions';
+              // 如果上一步search中途已经被中止,则不再继续
+              if (this.abortController === undefined) return;
 
+              const url = '/v1/chat/completions';
               const response = await fetch(url, {
                 method: 'POST',
                 headers: {
