@@ -1868,6 +1868,12 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         color: white;
       }
 
+      .send-btn.danger:hover {
+        background: #c82333;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+      }
+
       .send-btn:hover:not(:disabled) {
         background: #3182ce;
         transform: translateY(-1px);
@@ -3774,7 +3780,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             }
             this.isStreaming = false;
             this.isLoading = false;
-            const sessiong = this.currentSession;
+            const session = this.currentSession;
             const answerKey = session.question2 ? 'answer2' : 'answer';
             this.currentSession[answerKey] = this.streamingContent;
             this.saveData();
