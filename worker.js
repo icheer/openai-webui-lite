@@ -136,7 +136,10 @@ async function handleRequest(request, env = {}) {
     .map(i => i.trim())
     .filter(i => i);
   const MODEL_IDS = getEnv('MODEL_IDS', env) || MODEL_IDS_DEFAULT;
-  const API_BASE = getEnv('API_BASE', env) || API_BASE_DEFAULT;
+  const API_BASE = (getEnv('API_BASE', env) || API_BASE_DEFAULT).replace(
+    /\/$/,
+    ''
+  );
   const DEMO_PASSWORD = getEnv('DEMO_PASSWORD', env) || DEMO_PASSWORD_DEFAULT;
   const DEMO_MAX_TIMES =
     parseInt(getEnv('DEMO_MAX_TIMES_PER_HOUR', env)) ||
