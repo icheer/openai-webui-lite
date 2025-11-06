@@ -280,7 +280,7 @@ async function handleRequest(request, env = {}) {
     return new Response(htmlContent, {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8',
-        'Cache-Control': 'public, no-transform, max-age=14400' // 缓存4小时
+        'Cache-Control': 'public, max-age=14400' // 缓存4小时
       }
     });
   }
