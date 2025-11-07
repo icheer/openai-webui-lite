@@ -4261,8 +4261,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
               if (!response.ok) {
                 const errorData = await response.json().catch(e => ({}));
-                const message =
+                const errorMessage =
                   (errorData.error && errorData.error.message) ||
+                  errorData.error;
+                const message =
+                  errorMessage ||
                   'HTTP ' + response.status + ': ' + response.statusText;
                 throw new Error(message);
               }
@@ -4671,6 +4674,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);

@@ -2995,8 +2995,11 @@
 
               if (!response.ok) {
                 const errorData = await response.json().catch(e => ({}));
-                const message =
+                const errorMessage =
                   (errorData.error && errorData.error.message) ||
+                  errorData.error;
+                const message =
+                  errorMessage ||
                   'HTTP ' + response.status + ': ' + response.statusText;
                 throw new Error(message);
               }
