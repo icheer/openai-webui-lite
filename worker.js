@@ -4235,6 +4235,17 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     new Date().toTimeString() +
                     '。你无需针对“用户澄清真实时间”这件事做出任何提及和表态，请专注于核心问题的解答。\\n\\n请基于你已经掌握的知识，并结合上述你在搜索引擎获取到的搜索结果，详细回答我的问题。'
                 });
+                // 显示搜索结果数量（如果有）
+                if (searchQueries.length && !this.streamingContent) {
+                  this.streamingContent =
+                    '> 联网搜索：' +
+                    searchQueries.map(q => '「' + q + '」').join('、') +
+                    '\\n> \\n> AI 模型通过实时调用 Tavily 搜索引擎，找到了 ' +
+                    searchCounts
+                      .map(c => '[' + c + '](javascript:void(0))')
+                      .join(' + ') +
+                    ' 条相关信息。\\n\\n';
+                }
               }
             }
 
@@ -4281,18 +4292,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
               while (true) {
                 const { done, value } = await reader.read();
-
-                // 显示搜索结果数量（如果有）
-                if (searchQueries.length && !this.streamingContent) {
-                  this.streamingContent =
-                    '> 联网搜索：' +
-                    searchQueries.map(q => '「' + q + '」').join('、') +
-                    '\\n> \\n> AI 模型通过实时调用 Tavily 搜索引擎，找到了 ' +
-                    searchCounts
-                      .map(c => '[' + c + '](javascript:void(0))')
-                      .join(' + ') +
-                    ' 条相关信息。\\n\\n';
-                }
                 if (done) break;
 
                 buffer += decoder.decode(value, { stream: true });
