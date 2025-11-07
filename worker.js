@@ -3056,8 +3056,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             <h3 style="margin: 20px 0 10px; color: #333">🎯 核心功能</h3>
             <ul style="line-height: 1.8; color: #666; padding-left: 20px">
               <li>提供标准的 OpenAI API 代理端点</li>
-              <li>内置精美的 Web 聊天界面</li>
               <li>支持密码保护，避免暴露 API Key</li>
+              <li>内置精美的 Web 聊天界面</li>
+              <li>PWA 适配，支持移动设备添加到桌面</li>
               <li>流式响应，实时显示 AI 回答</li>
               <li>基于 IndexedDB 本地历史记录存储</li>
               <li>支持模型切换和自定义系统提示词</li>
@@ -4220,7 +4221,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 messages.push({
                   role: 'assistant',
                   content:
-                    'AI 模型通过实时调用 Tavily 搜索引擎，找到了以下信息: \\n' +
+                    'AI 模型通过实时调用 Tavily 搜索引擎，找到了以下信息: \\n\\n' +
                     '<pre><code>' +
                     JSON.stringify(searchResList) +
                     '</code></pre>'
@@ -4238,7 +4239,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             }
 
             try {
-              // 如果上一步search中途已经被中止,则不再继续
+              // 如果上一步search中途已经被用户主动中止,则不再继续
               if (this.abortController === undefined) return;
 
               const url = '/v1/chat/completions';
