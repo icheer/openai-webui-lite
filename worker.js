@@ -266,6 +266,15 @@ async function handleRequest(request, env = {}) {
       };
     }
 
+    // 不是两类密码的情况下,如果传入的apiKey长度少于10位,认为是无效的密码(因为一般情况下各类系统的API Key不会短于这个长度)
+    if (apiKey.length <= 10) {
+      return {
+        valid: false,
+        apiKey: '',
+        error: createErrorResponse('Wrong password.', 401)
+      };
+    }
+
     // 其他情况，使用原始 API Key
     return {
       valid: true,
