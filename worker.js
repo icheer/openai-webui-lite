@@ -2707,7 +2707,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 </h4>
                 <div
                   class="rendered-content markdown-body streaming-answer"
-                  v-html="renderMarkdown(isStreaming && !currentSession.question2 ? streamingContent : currentSession.answer)"
+                  v-html="renderMarkdown((isLoading || isStreaming) && !currentSession.question2 ? streamingContent : currentSession.answer)"
                   @click="answerClickHandler"
                 ></div>
               </div>
@@ -2794,7 +2794,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 </h4>
                 <div
                   class="rendered-content markdown-body streaming-answer"
-                  v-html="renderMarkdown(isStreaming ? streamingContent : currentSession.answer2)"
+                  v-html="renderMarkdown((isLoading || isStreaming) ? streamingContent : currentSession.answer2)"
                   @click="answerClickHandler"
                 ></div>
               </div>
@@ -4675,7 +4675,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
-
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
