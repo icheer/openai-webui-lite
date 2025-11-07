@@ -2677,7 +2677,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               </div>
               <!-- 回答1 -->
               <div
-                v-if="currentSession.answer || isStreaming"
+                v-if="currentSession.answer || isStreaming || isLoading && streamingContent"
                 class="content-section answer-section"
               >
                 <h4>
@@ -2765,7 +2765,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               </div>
               <!-- 回答2 -->
               <div
-                v-if="currentSession.question2 && (currentSession.answer2 || isStreaming)"
+                v-if="currentSession.question2 && (currentSession.answer2 || isStreaming || isLoading && streamingContent)"
                 class="content-section answer-section"
               >
                 <h4>
