@@ -1288,7 +1288,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <script src="https://unpkg.com/vue@3.5.22/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
     <script src="https://unpkg.com/marked@12.0.0/marked.min.js"></script>
-    <script src="https://unpkg.com/@zumer/snapdom@2.0.0-dev.2/dist/snapdom.min.js"></script>
+    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link
       rel="stylesheet"
       href="https://unpkg.com/github-markdown-css/github-markdown-light.css"
@@ -3906,20 +3906,24 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               }
             });
 
-            // 使用 SnapDOM 截图
-            snapdom
-              .toPng(sessionContent, {
-                backgroundColor: '#ffffff',
-                scale: window.devicePixelRatio || 1
-              })
-              .then(img => {
+            // 使用html2canvas截图
+            html2canvas(sessionContent, {
+              backgroundColor: '#ffffff',
+              scale: window.devicePixelRatio || 1,
+              useCORS: true,
+              allowTaint: false,
+              logging: false,
+              height: null,
+              width: null
+            })
+              .then(canvas => {
                 // 检测是否为微信浏览器环境
                 const userAgent = navigator.userAgent.toLowerCase();
                 const isWechat =
                   userAgent.includes('micromessenger') &&
                   userAgent.includes('mobile');
                 const isMobile = this.checkMobile();
-                const imageDataUrl = img.src;
+                const imageDataUrl = canvas.toDataURL('image/png');
                 Swal.fire({
                   title: isMobile ? '长按保存图片' : '右键复制图片',
                   html:
