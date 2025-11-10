@@ -142,7 +142,7 @@
 
 2. **配置代码**
 
-   - 将 `worker.js` 中的代码复制到 Worker 编辑器
+   - 将 `worker.js` 中的 [代码](https://github.com/icheer/openai-webui-lite/blob/main/worker.js) 复制到 Worker 编辑器
    - 修改以下配置：
 
    ```javascript
