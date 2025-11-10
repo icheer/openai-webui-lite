@@ -1288,7 +1288,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <script src="https://unpkg.com/vue@3.5.22/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
     <script src="https://unpkg.com/marked@12.0.0/marked.min.js"></script>
-    <script src="https://unpkg.com/@zumer/snapdom@1.9.14/dist/snapdom.min.js"></script>
+    <script src="https://unpkg.com/@zumer/snapdom@2.0.0-dev.2/dist/snapdom.min.js"></script>
     <link
       rel="stylesheet"
       href="https://unpkg.com/github-markdown-css/github-markdown-light.css"
