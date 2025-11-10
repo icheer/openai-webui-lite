@@ -3349,14 +3349,14 @@
             const vh = window.innerHeight;
             const container = this.$refs.messagesContainer;
             if (!container) return;
-            // 如果当前容器滚动高度低于1.5倍window.innerHeight, 强制滚动到底部
-            if (container.scrollHeight < vh * 1.5) {
+            // 如果当前容器滚动高度低于1.15倍window.innerHeight, 强制滚动到底部
+            if (container.scrollHeight < vh * 1.15) {
               container.scrollTop = container.scrollHeight;
               return;
             }
             const isAtBottom =
               container.scrollHeight - container.scrollTop <=
-              container.clientHeight + vh * 0.25;
+              container.clientHeight + vh * 0.15;
             if (isAtBottom) {
               container.scrollTop = container.scrollHeight;
             }
