@@ -773,7 +773,7 @@ function getLiteModelId(modelIds) {
   const models = modelIds
     .split(',')
     .filter(i => i)
-    .map(i => i.trim().split('=')[0])
+    .map(i => i.split('=')[0].trim())
     .filter(i => i);
   const parts = [
     '-mini',
