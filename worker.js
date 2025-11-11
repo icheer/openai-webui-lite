@@ -1646,10 +1646,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         position: absolute;
         top: 0;
         bottom: 0;
-        right: 18px;
+        right: 14px;
         margin: auto 0;
         height: 32px;
-        background: none;
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: saturate(180%) blur(16px);
         border: 1px solid #e1e5e9;
         color: #666;
         cursor: pointer;
@@ -1659,7 +1660,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       }
 
       .header .share-btn:hover {
-        background: #f8f9fa;
+        background: rgba(255, 255, 255, 0.7);
         border-color: #a8edea;
         color: #2d3748;
         transform: translateY(-1px);
@@ -2600,7 +2601,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               class="share-btn"
               @click="shareSession"
             >
-              分享问答
+              📸
             </button>
           </div>
           <!-- 消息区域 -->
@@ -4698,6 +4699,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
+
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
