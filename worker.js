@@ -2115,7 +2115,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
         .header {
           padding: 15px;
-          padding-left: 70px;
+          padding-left: 60px;
           flex-direction: column;
           align-items: stretch;
           gap: 10px;
@@ -4699,7 +4699,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     </script>
   </body>
 </html>
-
 
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
