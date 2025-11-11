@@ -781,11 +781,12 @@ function getLiteModelId(modelIds) {
     '-lite',
     '-flash',
     '-instruct',
+    '-alpha',
     '-4o',
     '-k2',
     '-v3',
-    '-air',
     '-r1',
+    '-air',
     '-haiku',
     'gpt'
   ];
