@@ -2115,7 +2115,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
         .header {
           padding: 15px;
-          padding-left: 60px;
+          padding-left: 64px;
           flex-direction: column;
           align-items: stretch;
           gap: 10px;
