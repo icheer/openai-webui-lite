@@ -3171,6 +3171,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           },
           inputPlaceholder() {
             const session = this.currentSession || {};
+            const suffix =
+              this.globalRolePromptEnabled && this.globalRolePrompt.trim()
+                ? ' (role √)'
+                : '';
             if (!this.apiKey) {
               return '请先在左上角设置 API Key';
             } else if (this.isLoading) {
@@ -3182,9 +3186,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             } else if (session.answer2) {
               return '当前会话已结束';
             } else if (session.answer) {
-              return '输入您的追问...';
+              return '输入您的追问...' + suffix;
             } else {
-              return '输入您的问题...';
+              return '输入您的问题...' + suffix;
             }
           },
           canInput() {
