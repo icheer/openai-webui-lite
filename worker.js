@@ -2601,7 +2601,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               class="share-btn"
               @click="shareSession"
             >
-              📸
+              📸 分享
             </button>
           </div>
           <!-- 消息区域 -->
