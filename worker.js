@@ -780,11 +780,11 @@ function getLiteModelId(modelIds) {
     '-nano',
     '-lite',
     '-flash',
-    '-air',
     '-instruct',
     '-4o',
     '-k2',
     '-v3',
+    '-air',
     '-r1',
     '-haiku',
     'gpt'
