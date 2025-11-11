@@ -3173,7 +3173,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const session = this.currentSession || {};
             const suffix =
               this.globalRolePromptEnabled && this.globalRolePrompt.trim()
-                ? ' (role √)'
+                ? ' (role ✓)'
                 : '';
             if (!this.apiKey) {
               return '请先在左上角设置 API Key';
