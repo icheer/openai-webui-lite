@@ -4488,6 +4488,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               }
               session.draft = questionText;
               this.messageInput = questionText;
+              if (!this.globalRolePromptEnabled) {
+                session.role = '';
+              } else {
+                session.role = this.globalRolePrompt.trim();
+              }
               this.saveData();
             });
           },
