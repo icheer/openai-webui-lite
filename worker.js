@@ -4409,12 +4409,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               this.saveData();
             } catch (error) {
               console.error('Error:', error);
-
               if (error.name === 'AbortError') {
                 this.errorMessage = '请求已取消';
               } else {
                 this.errorMessage = '发送失败: ' + error.message;
-
                 // 显示错误提示
                 Swal.fire({
                   title: '发送失败',
@@ -4423,6 +4421,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   confirmButtonText: '确定'
                 });
               }
+              const answerKey = session.question2 ? 'answer2' : 'answer';
+              this.currentSession[answerKey] = this.streamingContent;
+              this.saveData();
             } finally {
               this.isLoading = false;
               this.isStreaming = false;
@@ -4731,7 +4732,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             }
             const isAtBottom =
               container.scrollHeight - container.scrollTop <=
-              container.clientHeight + vh * 0.15;
+              container.clientHeight + vh * 0.18;
             if (isAtBottom) {
               container.scrollTop = container.scrollHeight;
             }
