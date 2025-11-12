@@ -2844,7 +2844,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 class="send-btn"
                 style="margin: 0 auto"
               >
-                🔄 重新回答
+                ↺ 重新回答
               </button>
             </div>
           </div>
