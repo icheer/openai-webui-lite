@@ -372,14 +372,28 @@ async function handleRequest(request, env = {}) {
         }
       ]
     };
-    const modelResponse = await fetch(modelUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + getNextApiKey(API_KEY_LIST)
-      },
-      body: JSON.stringify(modelPayload)
-    });
+    let modelResponse;
+    try {
+      modelResponse = await doWithTimeout(
+        fetch(modelUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + getNextApiKey(API_KEY_LIST)
+          },
+          body: JSON.stringify(modelPayload)
+        }),
+        30000 // 30秒超时
+      );
+    } catch (error) {
+      console.error('Search tavily failed:', error);
+      return new Response(JSON.stringify([]), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
     // 接下来从modelResponse中提取content
     const modelJsonData = await modelResponse.json();
     const content = modelJsonData.choices?.[0]?.message?.content || '';
@@ -748,6 +762,21 @@ function createErrorResponse(message, status) {
 }
 
 /**
+ * 为 Promise 添加超时控制
+ * @param {Promise} promise - 需要执行的 Promise
+ * @param {number} timeout - 超时时间（毫秒）
+ * @returns {Promise} 返回一个带超时控制的 Promise
+ */
+function doWithTimeout(promise, timeout) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`请求超时（${timeout}ms）`)), timeout)
+    )
+  ]);
+}
+
+/**
  * 轮询获取下一个 API Key
  * 使用递增索引方式，避免同一时间多个请求使用同一个 Key
  */
@@ -782,12 +811,12 @@ function getLiteModelId(modelIds) {
     '-flash',
     '-instruct',
     '-alpha',
+    '-haiku',
     '-4o',
-    '-k2',
     '-v3',
+    '-k2',
     '-r1',
     '-air',
-    '-haiku',
     'gpt'
   ];
   let model = models[0];
