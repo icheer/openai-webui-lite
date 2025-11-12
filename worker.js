@@ -4312,7 +4312,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 messages.push({
                   role: 'assistant',
                   content:
-                    'AI 模型通过实时调用 Tavily 搜索引擎，找到了以下信息: \\n\\n' +
+                    'AI模型通过实时调用Tavily搜索引擎，找到了以下信息: \\n\\n' +
                     '<pre><code>' +
                     JSON.stringify(searchResList) +
                     '</code></pre>'
@@ -4324,7 +4324,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     new Date().toDateString() +
                     ' ' +
                     new Date().toTimeString() +
-                    '。你无需针对“用户澄清真实时间”这件事做出任何提及和表态，请专注于核心问题的解答。\\n\\n请基于你已经掌握的知识，并结合上述你在搜索引擎获取到的搜索结果，详细回答我的问题。'
+                    '。你无需针对“用户澄清真实时间”这件事做出任何提及和表态，请专注于核心问题的解答。\\n\\n' +
+                    '请基于你已经掌握的知识，并结合上述你在搜索引擎获取到的搜索结果，详细回答我的问题。'
                 });
                 // 显示搜索结果数量（如果有）
                 if (searchQueries.length && !this.streamingContent) {
