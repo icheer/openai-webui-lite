@@ -2833,6 +2833,20 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             <div v-if="errorMessage" class="error-message">
               {{ errorMessage }}
             </div>
+
+            <!-- 重新回答按钮 -->
+            <div
+              v-if="shouldShowRetryButton"
+              style="text-align: center; margin: 20px 0"
+            >
+              <button
+                @click="retryCurrentQuestion"
+                class="send-btn"
+                style="margin: 0 auto"
+              >
+                🔄 重新回答
+              </button>
+            </div>
           </div>
           <!-- 输入区域 -->
           <div class="input-area">
@@ -3210,6 +3224,24 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           canUploadImage() {
             const isModelSupport = /(gpt|qwen|kimi)/.test(this.selectedModel);
             return isModelSupport && this.isMySite;
+          },
+          // 判断是否需要显示"重新回答"按钮（有问题但没有回答，且没有正在加载）
+          shouldShowRetryButton() {
+            const session = this.currentSession;
+            if (!session) return false;
+            if (this.isLoading || this.isStreaming) return false;
+
+            // 情况1: 有question但没有answer
+            if (session.question && !session.answer) {
+              return true;
+            }
+
+            // 情况2: 有question2但没有answer2
+            if (session.question2 && !session.answer2) {
+              return true;
+            }
+
+            return false;
           }
         },
         async mounted() {
@@ -4538,6 +4570,48 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               this.saveData();
               this.sendMessage();
             });
+          },
+
+          // 重新发送当前问题（用于API错误后的重试）
+          retryCurrentQuestion() {
+            if (this.isLoading || this.isStreaming || this.isUploadingImage)
+              return;
+            const session = this.currentSession;
+            if (!session) return;
+
+            // 清除错误消息
+            this.errorMessage = '';
+
+            // 判断是第一轮还是第二轮问答
+            if (session.question && !session.answer) {
+              // 第一轮问答失败，重新发送
+              this.messageInput = session.question || '';
+              this.uploadedImages = (session.images || [])
+                .filter(i => i && i !== 'INVALID')
+                .map(i => ({ url: i }));
+
+              // 清空问题，让sendMessage重新设置
+              session.question = '';
+              session.images = [];
+              session.createdAt = '';
+              session.model = '';
+
+              this.sendMessage();
+            } else if (session.question2 && !session.answer2) {
+              // 第二轮问答失败，重新发送
+              this.messageInput = session.question2 || '';
+              this.uploadedImages = (session.images2 || [])
+                .filter(i => i && i !== 'INVALID')
+                .map(i => ({ url: i }));
+
+              // 清空问题，让sendMessage重新设置
+              session.question2 = '';
+              session.images2 = [];
+              session.createdAt2 = '';
+              session.model2 = '';
+
+              this.sendMessage();
+            }
           },
 
           // 生成会话摘要
