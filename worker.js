@@ -2209,7 +2209,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         color: #721c24;
         padding: 12px 16px;
         border-radius: 8px;
-        margin: 10px 0;
+        margin: 0 0;
         border: 1px solid #f5c6cb;
       }
 
@@ -2837,7 +2837,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             <!-- 重新回答按钮 -->
             <div
               v-if="shouldShowRetryButton"
-              style="text-align: center; margin: 20px 0"
+              style="text-align: center; margin: 0 0 20px"
             >
               <button
                 @click="retryCurrentQuestion"
