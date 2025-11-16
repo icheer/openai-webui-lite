@@ -3103,7 +3103,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   .replace('B4u/', 'B4U/');
                 return {
                   value: id,
-                  label: parts.join(' ')
+                  label: label
                 };
               });
           }
