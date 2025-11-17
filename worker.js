@@ -3103,7 +3103,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   .replace('Cs/', 'CS/')
                   .replace('Iflow/', 'iFlow/')
                   .replace('Gcli', 'gCLI')
-                  .replace('B4u/', 'B4U/');
+                  .replace('B4u/', 'B4U/')
+                  .replace('/', ' / ');
                 return {
                   value: id,
                   label: label
@@ -4570,7 +4571,6 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 </body>
 
 </html>
-
   `;
   html = html.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
   // 控制"联网搜索"复选框的显隐
