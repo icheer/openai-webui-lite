@@ -1304,7 +1304,7 @@ function getManifestContent(title) {
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "favicon.svg",
+      "src": "favicon.svg?v=1",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -1330,13 +1330,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <title>OpenAI Chat</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="site.webmanifest" />
 
     <!-- iOS Safari -->
-    <link rel="apple-touch-icon" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="favicon.svg?v=1" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="OpenAI Chat" />
@@ -2596,7 +2596,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           <div class="header">
             <h2 @click="showAbout" style="cursor: pointer">
               <img
-                src="./favicon.svg"
+                src="./favicon.svg?v=1"
                 alt=""
                 width="24"
                 height="24"
