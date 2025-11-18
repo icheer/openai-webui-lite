@@ -1333,7 +1333,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
 
     <!-- Web App Manifest -->
-    <link rel="manifest" href="site.webmanifest" />
+    <link rel="manifest" href="site.webmanifest?v=1" />
 
     <!-- iOS Safari -->
     <link rel="apple-touch-icon" href="favicon.svg?v=1" />
