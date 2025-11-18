@@ -1328,13 +1328,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <title>OpenAI Chat</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <!-- Web App Manifest -->
-    <link rel="manifest" href="site.webmanifest?v=1" />
+    <link rel="manifest" href="site.webmanifest" />
 
     <!-- iOS Safari -->
-    <link rel="apple-touch-icon" href="favicon.svg?v=1" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="OpenAI Chat" />
@@ -2594,7 +2594,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           <div class="header">
             <h2 @click="showAbout" style="cursor: pointer">
               <img
-                src="./favicon.svg?v=1"
+                src="./favicon.svg"
                 alt=""
                 width="24"
                 height="24"
@@ -2910,8 +2910,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               <button
                 class="upload-image-btn"
                 @click="triggerImageUpload"
-                :disabled="!canInput || uploadedImages.length >= 2 || isUploadingImage"
-                :title="uploadedImages.length >= 2 ? '最多上传2张图片' : '上传图片'"
+                :disabled="!canInput || uploadedImages.length >= 3 || isUploadingImage"
+                :title="uploadedImages.length >= 3 ? '最多上传3张图片' : '上传图片'"
               >
                 📎
               </button>
@@ -3664,7 +3664,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           // 触发图片上传
           triggerImageUpload() {
-            if (this.uploadedImages.length >= 2) return;
+            if (this.uploadedImages.length >= 3) return;
             this.preheatImageUploadService();
             this.$refs.imageInput.click();
           },
@@ -3693,10 +3693,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 event.preventDefault(); // 阻止默认粘贴行为
 
                 // 检查是否已达到上传限制
-                if (this.uploadedImages.length >= 2) {
+                if (this.uploadedImages.length >= 3) {
                   Swal.fire({
                     title: '无法上传',
-                    text: '最多只能上传2张图片',
+                    text: '最多只能上传3张图片',
                     icon: 'warning',
                     confirmButtonText: '确定'
                   });

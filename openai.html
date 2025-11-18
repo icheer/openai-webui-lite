@@ -1590,8 +1590,8 @@
               <button
                 class="upload-image-btn"
                 @click="triggerImageUpload"
-                :disabled="!canInput || uploadedImages.length >= 2 || isUploadingImage"
-                :title="uploadedImages.length >= 2 ? '最多上传2张图片' : '上传图片'"
+                :disabled="!canInput || uploadedImages.length >= 3 || isUploadingImage"
+                :title="uploadedImages.length >= 3 ? '最多上传3张图片' : '上传图片'"
               >
                 📎
               </button>
@@ -2344,7 +2344,7 @@
 
           // 触发图片上传
           triggerImageUpload() {
-            if (this.uploadedImages.length >= 2) return;
+            if (this.uploadedImages.length >= 3) return;
             this.preheatImageUploadService();
             this.$refs.imageInput.click();
           },
@@ -2373,10 +2373,10 @@
                 event.preventDefault(); // 阻止默认粘贴行为
 
                 // 检查是否已达到上传限制
-                if (this.uploadedImages.length >= 2) {
+                if (this.uploadedImages.length >= 3) {
                   Swal.fire({
                     title: '无法上传',
-                    text: '最多只能上传2张图片',
+                    text: '最多只能上传3张图片',
                     icon: 'warning',
                     confirmButtonText: '确定'
                   });
