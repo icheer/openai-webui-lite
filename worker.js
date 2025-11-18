@@ -805,8 +805,6 @@ function getLiteModelId(modelIds) {
     .map(i => i.split('=')[0].trim())
     .filter(i => i);
   const parts = [
-    // 'gcli/gemini-flash-latest',
-    // 'gcli/gemini-2.5-flash',
     '-mini',
     '-nano',
     '-flash',
