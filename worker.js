@@ -2614,6 +2614,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               >
                 <option
                   v-for="i in availableModels"
+                  v-show="true"
                   :key="i.value"
                   :value="i.value"
                   v-cloak
