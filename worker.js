@@ -1766,7 +1766,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         color: inherit !important;
       }
       .ts-dropdown .ts-dropdown-content {
-        max-height: 26em;
+        max-height: 21em;
       }
 
       .model-wrap {
