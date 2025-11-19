@@ -2734,8 +2734,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   <span>
                     <span>问题</span>
                     <small v-if="currentSession.createdAt"
-                      >&emsp;{{ new
-                      Date(currentSession.createdAt).toLocaleString() }}</small
+                      >&emsp;{{ formatTimeStr(currentSession.createdAt)
+                      }}</small
                     >
                   </span>
                   <div>
@@ -2822,8 +2822,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   <span>
                     <span>追问</span>
                     <small v-if="currentSession.createdAt2"
-                      >&emsp;{{ new
-                      Date(currentSession.createdAt2).toLocaleString() }}</small
+                      >&emsp;{{ formatTimeStr(currentSession.createdAt2)
+                      }}</small
                     >
                   </span>
                   <div>
@@ -3970,6 +3970,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               reader.onerror = reject;
               reader.readAsDataURL(file);
             });
+          },
+
+          formatTimeStr(time) {
+            let str = new Date(time).toLocaleString();
+            const regex = new RegExp(':\\d{1,2}$');
+            str = str.replace(regex, '');
+            return str;
           },
 
           checkMobile() {
