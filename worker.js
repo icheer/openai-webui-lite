@@ -3427,7 +3427,16 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 this.selectedModel = value;
                 this.saveData();
               },
-              onDelete: () => false
+              onDelete: () => false,
+              onInitialize: () => {
+                const input = document.querySelector(
+                  '.dropdown-input-wrap input'
+                );
+                if (!input) return;
+                input.style.paddingLeft = '12px';
+                input.style.paddingRight = '12px';
+                input.setAttribute('placeholder', '请输入关键词');
+              }
             };
             const tomSelect = new TomSelect(el, config);
             this.tomSelect = tomSelect;
