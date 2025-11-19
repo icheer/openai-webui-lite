@@ -1725,13 +1725,15 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       }
 
       .model-select {
-        /* padding: 8px 12px; */
-        /* border: 2px solid #e1e5e9; */
         border-radius: 6px;
         background: white;
         font-size: 14px;
         cursor: pointer;
         user-select: none;
+      }
+      .model-select.simple {
+        padding: 8px 12px;
+        border: 2px solid #e1e5e9;
       }
 
       /* Tom Select Customization */
@@ -2643,6 +2645,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               <select
                 v-model="selectedModel"
                 class="model-select"
+                :class="{simple: availableModels.length <= 10}"
                 id="selectedModel"
                 :disabled="isLoading || isStreaming"
                 @change="saveData()"
@@ -3288,6 +3291,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           canSend() {
             return (
               (this.messageInput.trim() || this.uploadedImages.length > 0) &&
+              this.selectedModel &&
               !this.isUploadingImage &&
               this.canInput
             );
@@ -3378,10 +3382,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         methods: {
           initTomSelect() {
             if (this.tomSelect) return;
+            if (this.availableModels.length <= 10) return;
             const el = document.getElementById('selectedModel');
             if (!el) return;
-
-            this.tomSelect = new TomSelect(el, {
+            const config = {
               valueField: 'value',
               labelField: 'label',
               searchField: ['label', 'value'],
@@ -3401,13 +3405,25 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 },
                 item: function (data, escape) {
                   return '<div>' + escape(data.label) + '</div>';
+                },
+                no_results: function (data, escape) {
+                  return '<div class="no-results" style="padding: 0.6em; text-align: center; color: #999;">查无此项</div>';
                 }
               },
               onChange: value => {
                 this.selectedModel = value;
                 this.saveData();
               }
-            });
+            };
+            const tomSelect = new TomSelect(el, config);
+            this.tomSelect = tomSelect;
+            document.body.ontouchmove = e => {
+              const isInDropdown = e.target.closest('.ts-dropdown');
+              const isDropdownOpen = tomSelect.isOpen;
+              if (isDropdownOpen && !isInDropdown) {
+                tomSelect.close();
+              }
+            };
           },
           initModels() {
             const firstItem = this.availableModels[0];
