@@ -3391,6 +3391,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const el = document.getElementById('selectedModel');
             if (!el) return;
             const config = {
+              plugins: ['dropdown_input'],
               valueField: 'value',
               labelField: 'label',
               searchField: ['label', 'value'],
@@ -3420,15 +3421,17 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 this.selectedModel = value;
                 this.saveData();
               },
-              onDelete: () => false,
-              onBlur: () => {
-                if (this.tomSelect.isOpen) {
-                  this.tomSelect.close();
-                }
-              }
+              onDelete: () => false
             };
             const tomSelect = new TomSelect(el, config);
             this.tomSelect = tomSelect;
+            document.body.ontouchmove = e => {
+              const isInDropdown = e.target.closest('.ts-dropdown');
+              const isDropdownOpen = tomSelect.isOpen;
+              if (isDropdownOpen && !isInDropdown) {
+                tomSelect.close();
+              }
+            };
           },
           initModels() {
             const firstItem = this.availableModels[0];
