@@ -3974,7 +3974,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           formatTimeStr(time) {
             let str = new Date(time).toLocaleString();
-            const regex = new RegExp(':\\d{1,2}$');
+            const regex = new RegExp(':\\\\d{1,2}$');
             str = str.replace(regex, '');
             return str;
           },
