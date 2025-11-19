@@ -1340,19 +1340,19 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="OpenAI Chat" />
 
-    <link
-      href="https://unpkg.com/tom-select/dist/css/tom-select.default.css"
-      rel="stylesheet"
-    />
-    <script src="https://unpkg.com/tom-select/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://unpkg.com/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
 
     <script src="https://unpkg.com/vue@3.5.22/dist/vue.global.prod.js"></script>
-    <script src="https://unpkg.com/sweetalert2@11"></script>
+    <script src="https://unpkg.com/sweetalert2@11.26.3/dist/sweetalert2.all.js"></script>
     <script src="https://unpkg.com/marked@12.0.0/marked.min.js"></script>
     <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link
+      href="https://unpkg.com/tom-select@2.4.3/dist/css/tom-select.default.css"
       rel="stylesheet"
-      href="https://unpkg.com/github-markdown-css/github-markdown-light.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/github-markdown-css@5.8.1/github-markdown-light.css"
     />
     <script>
       var isWechat = new RegExp('wechat', 'i').test(window.navigator.userAgent);
@@ -1725,8 +1725,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       }
 
       .model-select {
-        padding: 8px 12px;
-        border: 2px solid #e1e5e9;
+        /* padding: 8px 12px; */
+        /* border: 2px solid #e1e5e9; */
         border-radius: 6px;
         background: white;
         font-size: 14px;
