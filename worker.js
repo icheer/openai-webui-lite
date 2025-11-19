@@ -3273,6 +3273,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               return '图片上传中...';
             } else if (session.answer2) {
               return '当前会话已结束';
+            } else if (!this.selectedModel) {
+              return '请选择一个模型';
             } else if (session.answer) {
               return '输入您的追问...' + suffix;
             } else {
@@ -3392,6 +3394,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               options: this.availableModels,
               items: [this.selectedModel],
               create: false,
+              maxOptions: 100,
               maxItems: 1,
               render: {
                 option: function (data, escape) {
