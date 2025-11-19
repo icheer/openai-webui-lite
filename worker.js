@@ -2650,7 +2650,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 :disabled="isLoading || isStreaming"
                 @change="saveData()"
               >
-                <option v-if="false"></option>
+                <option v-if="false">　</option>
                 <option
                   v-for="i in availableModels"
                   :key="i.value"
