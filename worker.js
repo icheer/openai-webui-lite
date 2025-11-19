@@ -3414,7 +3414,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   return '<div>' + escape(data.label) + '</div>';
                 },
                 no_results: function (data, escape) {
-                  return '<div class="no-results" style="padding: 0.6em; text-align: center; color: #999;">查无此项</div>';
+                  return '<div class="no-results" style="padding: 0.75em; text-align: center; color: #999;">查无此项</div>';
                 }
               },
               onChange: value => {
