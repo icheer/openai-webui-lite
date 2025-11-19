@@ -2640,15 +2640,17 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         <div class="main-chat">
           <!-- 头部 -->
           <div class="header">
-            <h2 @click="showAbout" style="cursor: pointer">
-              <img
-                src="./favicon.svg"
-                alt=""
-                width="24"
-                height="24"
-                style="flex: 0 0 auto; line-height: 1"
-              />
-              <span>OpenAI Chat</span>
+            <h2 style="cursor: pointer">
+              <span @click="showAbout">
+                <img
+                  src="./favicon.svg"
+                  alt=""
+                  width="24"
+                  height="24"
+                  style="flex: 0 0 auto; line-height: 1"
+                />
+                <span>OpenAI Chat</span>
+              </span>
             </h2>
             <div class="model-wrap">
               <select
