@@ -1340,6 +1340,12 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="OpenAI Chat" />
 
+    <link
+      href="https://unpkg.com/tom-select/dist/css/tom-select.default.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/tom-select/dist/js/tom-select.complete.min.js"></script>
+
     <script src="https://unpkg.com/vue@3.5.22/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
     <script src="https://unpkg.com/marked@12.0.0/marked.min.js"></script>
@@ -1726,6 +1732,36 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         font-size: 14px;
         cursor: pointer;
         user-select: none;
+      }
+
+      /* Tom Select Customization */
+      .ts-wrapper {
+        min-width: 200px;
+        max-width: 400px;
+        display: inline-block;
+      }
+      .ts-control {
+        border: 2px solid #e1e5e9 !important;
+        border-radius: 6px !important;
+        padding: 8px 12px !important;
+        box-shadow: none !important;
+        background-image: none !important;
+      }
+      .ts-control.focus {
+        border-color: #a8edea !important;
+      }
+      .ts-dropdown {
+        border: 2px solid #e1e5e9 !important;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        z-index: 1000 !important;
+      }
+      .ts-dropdown .option {
+        padding: 8px 12px !important;
+      }
+      .ts-dropdown .active {
+        background-color: #f8f9fa !important;
+        color: inherit !important;
       }
 
       .model-wrap {
@@ -3187,7 +3223,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             uploadedImages: [], // 待发送的图片列表 [{ url: string, file: File }]
             isUploadingImage: false,
             needSearch: false,
-            searchRes: null
+            searchRes: null,
+            tomSelect: null
           };
         },
         computed: {
@@ -3316,6 +3353,10 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               confirmButtonText: '&nbsp;知道了&nbsp;'
             });
           }
+
+          this.$nextTick(() => {
+            this.initTomSelect();
+          });
         },
 
         beforeUnmount() {
@@ -3327,9 +3368,47 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           },
           streamingContent() {
             this.stickToBottom();
+          },
+          selectedModel(newVal) {
+            if (this.tomSelect && this.tomSelect.getValue() !== newVal) {
+              this.tomSelect.setValue(newVal, true);
+            }
           }
         },
         methods: {
+          initTomSelect() {
+            if (this.tomSelect) return;
+            const el = document.getElementById('selectedModel');
+            if (!el) return;
+
+            this.tomSelect = new TomSelect(el, {
+              valueField: 'value',
+              labelField: 'label',
+              searchField: ['label', 'value'],
+              options: this.availableModels,
+              items: [this.selectedModel],
+              create: false,
+              maxItems: 1,
+              render: {
+                option: function (data, escape) {
+                  return (
+                    '<div>' +
+                    '<span class="title">' +
+                    escape(data.label) +
+                    '</span>' +
+                    '</div>'
+                  );
+                },
+                item: function (data, escape) {
+                  return '<div>' + escape(data.label) + '</div>';
+                }
+              },
+              onChange: value => {
+                this.selectedModel = value;
+                this.saveData();
+              }
+            });
+          },
           initModels() {
             const firstItem = this.availableModels[0];
             if (typeof firstItem === 'string') {
