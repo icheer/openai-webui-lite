@@ -3435,7 +3435,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 if (!input) return;
                 input.style.paddingLeft = '12px';
                 input.style.paddingRight = '12px';
-                input.setAttribute('placeholder', '请输入关键词');
+                input.setAttribute('placeholder', '模型关键词');
               }
             };
             const tomSelect = new TomSelect(el, config);
