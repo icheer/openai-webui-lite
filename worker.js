@@ -1684,6 +1684,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         margin: 0;
         color: #495057;
         user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
       }
 
       .header h2 .brand {
