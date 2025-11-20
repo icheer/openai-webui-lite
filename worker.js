@@ -810,6 +810,7 @@ function getLiteModelId(modelIds) {
     '-flash',
     '-lite',
     '-instruct',
+    '-fast',
     '-dash',
     '-alpha',
     '-haiku',
