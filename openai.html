@@ -431,12 +431,15 @@
         max-width: 400px;
         display: inline-block;
       }
-      .ts-control {
+      .ts-wrapper .ts-control {
         border: 2px solid #e1e5e9 !important;
         border-radius: 6px !important;
-        padding: 8px 12px !important;
+        padding: 8px 24px 8px 12px !important;
         box-shadow: none !important;
         background-image: none !important;
+      }
+      .ts-wrapper .ts-control:after {
+        right: 8px;
       }
       .ts-control.focus {
         border-color: #a8edea !important;
@@ -944,10 +947,14 @@
           display: inline-block;
           vertical-align: middle;
           white-space: nowrap;
-          max-width: 13em;
+          max-width: 27em;
           padding-bottom: 1px;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+
+        .content-section:hover > h4 small {
+          max-width: 13em;
         }
       }
 
