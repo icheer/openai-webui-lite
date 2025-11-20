@@ -2642,7 +2642,8 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               :title="session.summary || session.title || '新会话'"
             >
               <div class="session-title">
-                {{ session.summary || session.title || '新会话' }}
+                <span v-if="session.role">💭</span>
+                <span>{{ session.summary || session.title || '新会话' }}</span>
               </div>
               <button
                 @click.stop="deleteSession(session.id)"
