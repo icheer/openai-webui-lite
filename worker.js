@@ -1766,7 +1766,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         background-image: none !important;
       }
       .ts-wrapper .ts-control:after {
-        right: 8px;
+        right: 8px !important;
       }
       .ts-control.focus {
         border-color: #a8edea !important;
