@@ -2387,6 +2387,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        white-space: nowrap;
       }
 
       .content-section > h4 small {
