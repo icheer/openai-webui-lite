@@ -1683,6 +1683,14 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         align-items: center;
         margin: 0;
         color: #495057;
+        user-select: none;
+      }
+
+      .header h2 .brand {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        color: #495057;
         gap: 6px;
         user-select: none;
       }
@@ -2641,7 +2649,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           <!-- 头部 -->
           <div class="header">
             <h2 style="cursor: pointer">
-              <span @click="showAbout">
+              <div class="brand" @click="showAbout">
                 <img
                   src="./favicon.svg"
                   alt=""
@@ -2650,7 +2658,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   style="flex: 0 0 auto; line-height: 1"
                 />
                 <span>OpenAI Chat</span>
-              </span>
+              </div>
             </h2>
             <div class="model-wrap">
               <select
