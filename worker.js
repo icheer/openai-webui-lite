@@ -5084,11 +5084,11 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
   // 如果模型<=10个, 则不必引入tom-select.js
   if (modelIds.split(',').length <= 10) {
     html = html.replace(
-      /<script[\s]*src="https:\/\/unpkg\.com\/tom-select[\s\S]*\/script>/,
+      /<script[\s]*src="https:\/\/unpkg\.com\/tom-select[\s\S]{0,80}?\/script>/,
       ''
     );
     html = html.replace(
-      /<link[\s]*href="https:\/\/unpkg\.com\/tom-select[\s\S]*\/>/,
+      /<link[\s]*href="https:\/\/unpkg\.com\/tom-select[\s\S]{0,80}?\/>/,
       ''
     );
   }
