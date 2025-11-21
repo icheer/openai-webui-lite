@@ -3258,7 +3258,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             isUploadingImage: false,
             needSearch: false,
             searchRes: null,
-            tomSelect: null
+            tomSelect: null,
+            sidebarHashAdded: false, // 标记是否为侧边栏添加了hash
+            swalHashAdded: false // 标记是否为弹窗添加了hash
           };
         },
         computed: {
@@ -3377,10 +3379,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           this.checkMobile();
           window.addEventListener('resize', this.checkMobile);
 
+          // 监听浏览器后退事件（移动端体验优化）
+          window.addEventListener('popstate', this.handlePopState);
+
           // 计算OpenAI DB总数据量
           const totalDataSize = await window.openaiDB.getTotalDataSize();
           if (totalDataSize > 2) {
-            Swal.fire({
+            this.showSwal({
               title: '数据量过大',
               text:
                 '当前存储的数据量为' +
@@ -3398,6 +3403,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
         beforeUnmount() {
           window.removeEventListener('resize', this.checkMobile);
+          window.removeEventListener('popstate', this.handlePopState);
         },
         watch: {
           messageInput() {
@@ -3413,6 +3419,73 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           }
         },
         methods: {
+          // 移动端后退体验优化：添加hash锚点
+          addHash(type) {
+            if (!this.isMobile) return;
+            const hash = '#' + type;
+            if (window.location.hash !== hash) {
+              window.history.pushState(null, '', hash);
+            }
+          },
+
+          // 移动端后退体验优化：移除hash锚点
+          removeHash() {
+            if (!this.isMobile) return;
+            if (window.location.hash) {
+              window.history.back();
+            }
+          },
+
+          // 移动端后退体验优化：处理浏览器后退事件
+          handlePopState(event) {
+            if (!this.isMobile) return;
+
+            // 如果侧边栏是打开的，关闭它
+            if (this.showSidebar && this.sidebarHashAdded) {
+              this.showSidebar = false;
+              this.sidebarHashAdded = false;
+              return;
+            }
+
+            // 如果有Swal弹窗打开，关闭它
+            if (Swal.isVisible() && this.swalHashAdded) {
+              Swal.close();
+              this.swalHashAdded = false;
+              return;
+            }
+          },
+
+          // 包装Swal.fire以支持移动端hash管理
+          showSwal(options) {
+            const isMobile = this.isMobile;
+            const originalDidOpen = options.didOpen;
+            const originalWillClose = options.willClose;
+
+            // 扩展didOpen回调
+            options.didOpen = (...args) => {
+              if (isMobile) {
+                this.addHash('modal');
+                this.swalHashAdded = true;
+              }
+              if (originalDidOpen) {
+                originalDidOpen.apply(this, args);
+              }
+            };
+
+            // 扩展willClose回调
+            options.willClose = (...args) => {
+              if (isMobile && this.swalHashAdded) {
+                this.removeHash();
+                this.swalHashAdded = false;
+              }
+              if (originalWillClose) {
+                originalWillClose.apply(this, args);
+              }
+            };
+
+            return Swal.fire(options);
+          },
+
           initTomSelect() {
             if (this.tomSelect) return;
             if (this.availableModels.length <= 10) return;
@@ -3662,7 +3735,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
           askApiKeyIfNeeded() {
             if (this.apiKey) return;
-            Swal.fire({
+            this.showSwal({
               title: '请输入 API Key',
               input: 'password',
               inputPlaceholder: '请输入您的 OpenAI API Key',
@@ -3757,7 +3830,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               doDelete();
               return;
             }
-            Swal.fire({
+            this.showSwal({
               title: '确认删除',
               text: '您确定要删除这个会话吗？',
               icon: 'warning',
@@ -3835,7 +3908,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
                 // 检查是否已达到上传限制
                 if (this.uploadedImages.length >= 3) {
-                  Swal.fire({
+                  this.showSwal({
                     title: '无法上传',
                     text: '最多只能上传3张图片',
                     icon: 'warning',
@@ -3850,7 +3923,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
                 // 检查文件大小 (限制10MB)
                 if (file.size > 10 * 1024 * 1024) {
-                  Swal.fire({
+                  this.showSwal({
                     title: '文件过大',
                     text: '图片大小不能超过10MB',
                     icon: 'error',
@@ -3920,7 +3993,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               }
             } catch (error) {
               console.error('上传图片失败:', error);
-              Swal.fire({
+              this.showSwal({
                 title: '上传失败',
                 text: error.message,
                 icon: 'error',
@@ -3938,7 +4011,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
             // 检查文件类型
             if (!file.type.startsWith('image/')) {
-              Swal.fire({
+              this.showSwal({
                 title: '文件类型错误',
                 text: '请选择图片文件',
                 icon: 'error',
@@ -3950,7 +4023,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
             // 检查文件大小 (限制10MB)
             if (file.size > 10 * 1024 * 1024) {
-              Swal.fire({
+              this.showSwal({
                 title: '文件过大',
                 text: '图片大小不能超过10MB',
                 icon: 'error',
@@ -3979,7 +4052,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           previewImage(imageUrl) {
             // 如果是INVALID标记,不支持预览
             if (imageUrl === 'INVALID') return;
-            Swal.fire({
+            this.showSwal({
               imageUrl: imageUrl,
               imageAlt: '图片预览',
               showCloseButton: true,
@@ -4036,10 +4109,28 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           toggleSidebar() {
             if (this.isLoading || this.isStreaming) return;
             this.showSidebar = !this.showSidebar;
+
+            // 移动端优化：显示侧边栏时添加hash，隐藏时移除hash
+            if (this.isMobile) {
+              if (this.showSidebar) {
+                this.addHash('sidebar');
+                this.sidebarHashAdded = true;
+              } else {
+                if (this.sidebarHashAdded) {
+                  this.removeHash();
+                  this.sidebarHashAdded = false;
+                }
+              }
+            }
           },
 
           hideSidebar() {
             this.showSidebar = false;
+            // 移动端优化：隐藏侧边栏时移除hash
+            if (this.isMobile && this.sidebarHashAdded) {
+              this.removeHash();
+              this.sidebarHashAdded = false;
+            }
           },
 
           cancelStreaming() {
@@ -4069,7 +4160,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             navigator.clipboard
               .writeText(text)
               .then(() => {
-                Swal.fire({
+                this.showSwal({
                   title: '复制成功',
                   text: '内容已复制到剪贴板',
                   icon: 'success',
@@ -4078,7 +4169,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                 });
               })
               .catch(() => {
-                Swal.fire({
+                this.showSwal({
                   title: '复制失败',
                   text: '请手动复制内容',
                   icon: 'error',
@@ -4123,7 +4214,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             if (!template) return;
             const htmlContent = template.innerHTML;
             // 显示弹窗
-            Swal.fire({
+            this.showSwal({
               title: '联网搜索详情',
               html: htmlContent,
               width: this.isMobile ? '95%' : '800px',
@@ -4141,7 +4232,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           async shareSession() {
             const sessionContent = document.querySelector('.session-content');
             if (!sessionContent) {
-              Swal.fire({
+              this.showSwal({
                 title: '截图失败',
                 text: '未找到要截图的内容',
                 icon: 'error',
@@ -4153,7 +4244,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             await this.$nextTick();
 
             // 显示加载提示
-            Swal.fire({
+            this.showSwal({
               title: '正在生成截图...',
               allowOutsideClick: false,
               didOpen: () => {
@@ -4179,7 +4270,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                   userAgent.includes('mobile');
                 const isMobile = this.checkMobile();
                 const imageDataUrl = canvas.toDataURL('image/png');
-                Swal.fire({
+                this.showSwal({
                   title: isMobile ? '长按保存图片' : '右键复制图片',
                   html:
                     '<div style="max-height: 70vh; overflow-y: auto;"><img src="' +
@@ -4211,7 +4302,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     document.body.removeChild(link);
 
                     // 显示下载成功提示
-                    Swal.fire({
+                    this.showSwal({
                       title: '下载成功',
                       text: '图片已保存到下载文件夹',
                       icon: 'success',
@@ -4223,7 +4314,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               })
               .catch(error => {
                 console.error('截图失败:', error);
-                Swal.fire({
+                this.showSwal({
                   title: '截图失败',
                   text: '生成图片时出现错误: ' + error.message,
                   icon: 'error',
@@ -4608,7 +4699,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               } else {
                 this.errorMessage = '发送失败: ' + error.message;
                 // 显示错误提示
-                Swal.fire({
+                this.showSwal({
                   title: '发送失败',
                   text: error.message,
                   icon: 'error',
@@ -4678,7 +4769,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               return;
             if (!this.currentSession) return;
             // 二次确认
-            Swal.fire({
+            this.showSwal({
               title: '确认编辑问题',
               text: '这会导致对应的回答被清空，您确定要编辑这个问题吗？',
               icon: 'warning',
@@ -4731,7 +4822,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           // 删除最新的回答并重新回答
           regenerateAnswer() {
             // 二次确认
-            Swal.fire({
+            this.showSwal({
               title: '确认删除回答',
               text: '确定要删除这个回答并重新生成吗？',
               icon: 'warning',
@@ -4966,7 +5057,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             const template = this.$refs.aboutTemplate;
             if (!template) return;
             const htmlContent = template.innerHTML;
-            Swal.fire({
+            this.showSwal({
               title: '关于 OpenAI WebUI Lite',
               confirmButtonText: '&emsp;知道了&emsp;',
               width: isMobile ? '95%' : '600px',
