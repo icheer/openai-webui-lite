@@ -5081,5 +5081,16 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     const regex = new RegExp(TITLE_DEFAULT, 'g');
     html = html.replace(regex, title);
   }
+  // 如果模型<=10个, 则不必引入tom-select.js
+  if (modelIds.split(',').length <= 10) {
+    html = html.replace(
+      /<script src="https:\/\/unpkg\.com\/tom-select.*?\/script>/,
+      ''
+    );
+    html = html.replace(
+      /<link href="https:\/\/unpkg\.com\/tom-select.*?\/link>/,
+      ''
+    );
+  }
   return html;
 }
