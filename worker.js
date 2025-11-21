@@ -5088,7 +5088,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
       ''
     );
     html = html.replace(
-      /<link href="https:\/\/unpkg\.com\/tom-select.*?\/link>/,
+      /<link.*?href="https:\/\/unpkg\.com\/tom-select.*?\/>/,
       ''
     );
   }
