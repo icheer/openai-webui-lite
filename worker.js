@@ -1307,10 +1307,10 @@ function getManifestContent(title) {
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#605bec",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "icons": [
     {
-      "src": "favicon.svg?v=1",
+      "src": "favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -1339,7 +1339,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <!-- Web App Manifest -->
-    <link rel="manifest" href="site.webmanifest" />
+    <link rel="manifest" href="site.webmanifest?v=1" />
 
     <!-- iOS Safari -->
     <link rel="apple-touch-icon" href="favicon.svg" />
