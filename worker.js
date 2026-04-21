@@ -615,7 +615,7 @@ ${truncatedAnswer}
     const modelPayload = {
       model: summaryModel,
       messages: messages,
-      max_tokens: 300,
+      max_tokens: 500,
       stream: false
     };
 
@@ -944,6 +944,7 @@ function getLiteModelId(modelIds) {
     .map(i => i.split('=')[0].trim())
     .filter(i => i);
   const parts = [
+    'or/deepseek-v',
     'deepseek-v',
     'qwen3-next',
     '-oss-',
@@ -6972,7 +6973,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               },
               body: JSON.stringify({
                 question: question,
-                answer: answer
+                answer: answer.replace(/<details[\\s\\S]*?<\\/details>/g, '') // 去除<details>标签
               })
             })
               .then(response => {
@@ -6997,7 +6998,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                       summary = summary.slice(0, -1);
                     }
                     item.summary = summary;
-                    this.sleep(1000).then(() => {
+                    this.sleep(1500).then(() => {
                       this.saveData();
                     });
                   }

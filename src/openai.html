@@ -4378,7 +4378,7 @@
               },
               body: JSON.stringify({
                 question: question,
-                answer: answer
+                answer: answer.replace(/<details[\s\S]*?<\/details>/g, '') // 去除<details>标签
               })
             })
               .then(response => {
@@ -4403,7 +4403,7 @@
                       summary = summary.slice(0, -1);
                     }
                     item.summary = summary;
-                    this.sleep(1000).then(() => {
+                    this.sleep(1500).then(() => {
                       this.saveData();
                     });
                   }
