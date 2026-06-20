@@ -1,11 +1,13 @@
 const isDeno = typeof Deno !== 'undefined';
 const isCf =
   !isDeno &&
-  typeof Request !== 'undefined' &&
-  typeof Request.prototype !== 'undefined';
+  typeof navigator !== 'undefined' &&
+  navigator.userAgent === 'Cloudflare-Workers';
+const isNode =
+  !isDeno && !isCf && typeof process !== 'undefined' && process.versions?.node;
 
 // 获取环境变量
-const SERVER_TYPE = isDeno ? 'DENO' : isCf ? 'CF' : 'VPS';
+const SERVER_TYPE = isDeno ? 'DENO' : isCf ? 'CF' : 'NODE';
 function getEnv(key, env = {}) {
   if (isDeno) {
     return Deno.env.get(key) || '';
@@ -150,6 +152,9 @@ async function handleRequest(request, env = {}) {
     .map(i => i.trim())
     .filter(i => i);
   const TITLE = getEnv('TITLE', env) || TITLE_DEFAULT;
+  const TTS_API_BASE = (getEnv('TTS_API_BASE', env) || '').replace(/\/$/, '');
+  const TTS_API_KEY = getEnv('TTS_API_KEY', env) || '';
+  const ttsEnabled = !!(TTS_API_BASE && TTS_API_KEY);
 
   let CHAT_TYPE = 'bot';
   if (/openai/i.test(TITLE)) {
@@ -162,8 +167,16 @@ async function handleRequest(request, env = {}) {
     CHAT_TYPE = 'qwen';
   } else if (/deepseek/i.test(TITLE)) {
     CHAT_TYPE = 'deepseek';
+  } else if (/glm|zhipu/i.test(TITLE)) {
+    CHAT_TYPE = 'glm';
+  } else if (/minimax/i.test(TITLE)) {
+    CHAT_TYPE = 'minimax';
+  } else if (/kimi|moonshot/i.test(TITLE)) {
+    CHAT_TYPE = 'kimi';
   } else if (/router/i.test(TITLE)) {
     CHAT_TYPE = 'router';
+  } else if (/nvidia/i.test(TITLE)) {
+    CHAT_TYPE = 'nvidia';
   }
 
   /**
@@ -290,7 +303,12 @@ async function handleRequest(request, env = {}) {
 
   // 处理HTML页面请求
   if (apiPath === '/' || apiPath === '/index.html') {
-    const htmlContent = getHtmlContent(MODEL_IDS, TAVILY_KEYS, TITLE);
+    const htmlContent = getHtmlContent(
+      MODEL_IDS,
+      TAVILY_KEYS,
+      TITLE,
+      ttsEnabled
+    );
     return new Response(htmlContent, {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8',
@@ -380,7 +398,7 @@ async function handleRequest(request, env = {}) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + getNextApiKey(API_KEY_LIST)
+            Authorization: 'Bearer ' + keyValidation.apiKey
           },
           body: JSON.stringify(modelPayload)
         }),
@@ -567,11 +585,6 @@ async function handleRequest(request, env = {}) {
       return keyValidation.error;
     }
 
-    // 检查是否是有效的密码（SECRET_PASSWORD 或 DEMO_PASSWORD）
-    if (![DEMO_PASSWORD, SECRET_PASSWORD].includes(apiKey)) {
-      return createErrorResponse('Invalid API key. Provide a valid key.', 403);
-    }
-
     // 截取question和answer，避免过长
     const truncatedQuestion =
       question.length <= 300
@@ -624,7 +637,7 @@ ${truncatedAnswer}
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + getNextApiKey(API_KEY_LIST)
+          Authorization: 'Bearer ' + keyValidation.apiKey
         },
         body: JSON.stringify(modelPayload)
       });
@@ -791,6 +804,74 @@ ${truncatedAnswer}
     }
   }
 
+  // TTS 语音合成代理接口
+  if (apiPath === '/speech' && apiMethod === 'POST') {
+    let apiKey =
+      url.searchParams.get('key') || request.headers.get('Authorization') || '';
+    apiKey = apiKey.replace('Bearer ', '').trim();
+
+    const keyValidation = await validateAndProcessApiKey(apiKey, 0.1);
+    if (!keyValidation.valid) return keyValidation.error;
+
+    if (!TTS_API_BASE || !TTS_API_KEY) {
+      return createErrorResponse('TTS service not configured', 503);
+    }
+
+    let ttsBody;
+    try {
+      ttsBody = await request.json();
+    } catch (e) {
+      return createErrorResponse('Invalid JSON body', 400);
+    }
+
+    const { input, voice = 'alloy', speed = 1.0, pitch = 1.0 } = ttsBody;
+    if (!input) {
+      return createErrorResponse('Missing input parameter', 400);
+    }
+
+    try {
+      const ttsResponse = await fetch(`${TTS_API_BASE}/v1/audio/speech`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${TTS_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'tts-1',
+          input,
+          voice,
+          response_format: 'mp3',
+          speed,
+          pitch,
+          cleaning_options: {
+            remove_markdown: true,
+            remove_emoji: true,
+            remove_urls: true,
+            remove_line_breaks: true
+          }
+        })
+      });
+
+      if (!ttsResponse.ok) {
+        const errText = await ttsResponse.text();
+        return createErrorResponse(`TTS error: ${errText}`, ttsResponse.status);
+      }
+
+      const audioBuffer = await ttsResponse.arrayBuffer();
+      return new Response(audioBuffer, {
+        status: 200,
+        headers: {
+          'Content-Type': 'audio/mpeg',
+          'Cache-Control': 'no-cache',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    } catch (error) {
+      console.error('TTS proxy error:', error);
+      return createErrorResponse('TTS proxy failed: ' + error.message, 502);
+    }
+  }
+
   if (!apiPath.startsWith('/v1')) {
     return createErrorResponse(
       apiPath + ' Invalid API path. Must start with /v1',
@@ -880,7 +961,8 @@ function buildProxyRequest(originalRequest, apiKey) {
     method: originalRequest.method,
     headers: headers,
     body: originalRequest.body,
-    redirect: 'follow'
+    redirect: 'follow',
+    ...(isNode ? { duplex: 'half' } : {})
   };
 }
 
@@ -944,6 +1026,8 @@ function getLiteModelId(modelIds) {
     .map(i => i.split('=')[0].trim())
     .filter(i => i);
   const parts = [
+    'silicon/deepseek-v4-flash',
+    'tencent/deepseek-v4-flash',
     'or/deepseek-v',
     'deepseek-v',
     'qwen3-next',
@@ -1352,6 +1436,41 @@ function getSvgContent(chatType) {
   ></path>
 </svg>
   `;
+  const svgNvidia = `
+<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  version="1.1"
+  xmlns="http://www.w3.org/2000/svg"
+  width="32"
+  height="32"
+>
+  <rect width="24" height="24" fill="white" />
+  <path
+    d="M8.948 8.798v-1.43a6.7 6.7 0 0 1 .424-.018c3.922-.124 6.493 3.374 6.493 3.374s-2.774 3.851-5.75 3.851c-.398 0-.787-.062-1.158-.185v-4.346c1.528.185 1.837.857 2.747 2.385l2.04-1.714s-1.492-1.952-4-1.952a6.016 6.016 0 0 0-.796.035m0-4.735v2.138l.424-.027c5.45-.185 9.01 4.47 9.01 4.47s-4.08 4.964-8.33 4.964c-.37 0-.733-.035-1.095-.097v1.325c.3.035.61.062.91.062 3.957 0 6.82-2.023 9.593-4.408.459.371 2.34 1.263 2.73 1.652-2.633 2.208-8.772 3.984-12.253 3.984-.335 0-.653-.018-.971-.053v1.864H24V4.063zm0 10.326v1.131c-3.657-.654-4.673-4.46-4.673-4.46s1.758-1.944 4.673-2.262v1.237H8.94c-1.528-.186-2.73 1.245-2.73 1.245s.68 2.412 2.739 3.11M2.456 10.9s2.164-3.197 6.5-3.533V6.201C4.153 6.59 0 10.653 0 10.653s2.35 6.802 8.948 7.42v-1.237c-4.84-.6-6.492-5.936-6.492-5.936z"
+    fill="#76B900"
+  ></path>
+</svg>
+  `;
+  const svgZhipu = `
+<svg
+  height="1em"
+  style="flex:none;line-height:1"
+  viewBox="0 0 24 24"
+  width="1em"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title>Zhipu</title>
+  <path d="M11.991 23.503a.24.24 0 00-.244.248.24.24 0 00.244.249.24.24 0 00.245-.249.24.24 0 00-.22-.247l-.025-.001zM9.671 5.365a1.697 1.697 0 011.099 2.132l-.071.172-.016.04-.018.054c-.07.16-.104.32-.104.498-.035.71.47 1.279 1.186 1.314h.366c1.309.053 2.338 1.173 2.286 2.523-.052 1.332-1.152 2.38-2.478 2.327h-.174c-.715.018-1.274.64-1.239 1.368 0 .124.018.23.053.337.209.373.54.658.96.8.75.23 1.517-.125 1.9-.782l.018-.035c.402-.64 1.17-.96 1.92-.711.854.284 1.378 1.226 1.099 2.167a1.661 1.661 0 01-2.077 1.102 1.711 1.711 0 01-.907-.711l-.017-.035c-.2-.323-.463-.58-.851-.711l-.056-.018a1.646 1.646 0 00-1.954.746 1.66 1.66 0 01-1.065.764 1.677 1.677 0 01-1.989-1.279c-.209-.906.332-1.83 1.257-2.043a1.51 1.51 0 01.296-.035h.018c.68-.071 1.151-.622 1.116-1.333a1.307 1.307 0 00-.227-.693 2.515 2.515 0 01-.366-1.403 2.39 2.39 0 01.366-1.208c.14-.195.21-.444.227-.693.018-.71-.506-1.261-1.186-1.332l-.07-.018a1.43 1.43 0 01-.299-.07l-.05-.019a1.7 1.7 0 01-1.047-2.114 1.68 1.68 0 012.094-1.101zm-5.575 10.11c.26-.264.639-.367.994-.27.355.096.633.379.728.74.095.362-.007.748-.267 1.013-.402.41-1.053.41-1.455 0a1.062 1.062 0 010-1.482zm14.845-.294c.359-.09.738.024.992.297.254.274.344.665.237 1.025-.107.36-.396.634-.756.718-.551.128-1.1-.22-1.23-.781a1.05 1.05 0 01.757-1.26zm-.064-4.39c.314.32.49.753.49 1.206 0 .452-.176.886-.49 1.206-.315.32-.74.5-1.185.5-.444 0-.87-.18-1.184-.5a1.727 1.727 0 010-2.412 1.654 1.654 0 012.369 0zm-11.243.163c.364.484.447 1.128.218 1.691a1.665 1.665 0 01-2.188.923c-.855-.36-1.26-1.358-.907-2.228a1.68 1.68 0 011.33-1.038c.593-.08 1.183.169 1.547.652zm11.545-4.221c.368 0 .708.2.892.524.184.324.184.724 0 1.048a1.026 1.026 0 01-.892.524c-.568 0-1.03-.47-1.03-1.048 0-.579.462-1.048 1.03-1.048zm-14.358 0c.368 0 .707.2.891.524.184.324.184.724 0 1.048a1.026 1.026 0 01-.891.524c-.569 0-1.03-.47-1.03-1.048 0-.579.461-1.048 1.03-1.048zm10.031-1.475c.925 0 1.675.764 1.675 1.706s-.75 1.705-1.675 1.705-1.674-.763-1.674-1.705c0-.942.75-1.706 1.674-1.706zm-2.626-.684c.362-.082.653-.356.761-.718a1.062 1.062 0 00-.238-1.028 1.017 1.017 0 00-.996-.294c-.547.14-.881.7-.752 1.257.13.558.675.907 1.225.783zm0 16.876c.359-.087.644-.36.75-.72a1.062 1.062 0 00-.237-1.019 1.018 1.018 0 00-.985-.301 1.037 1.037 0 00-.762.717c-.108.361-.017.754.239 1.028.245.263.606.377.953.305l.043-.01zM17.19 3.5a.631.631 0 00.628-.64c0-.355-.279-.64-.628-.64a.631.631 0 00-.628.64c0 .355.28.64.628.64zm-10.38 0a.631.631 0 00.628-.64c0-.355-.28-.64-.628-.64a.631.631 0 00-.628.64c0 .355.279.64.628.64zm-5.182 7.852a.631.631 0 00-.628.64c0 .354.28.639.628.639a.63.63 0 00.627-.606l.001-.034a.62.62 0 00-.628-.64zm5.182 9.13a.631.631 0 00-.628.64c0 .355.279.64.628.64a.631.631 0 00.628-.64c0-.355-.28-.64-.628-.64zm10.38.018a.631.631 0 00-.628.64c0 .355.28.64.628.64a.631.631 0 00.628-.64c0-.355-.279-.64-.628-.64zm5.182-9.148a.631.631 0 00-.628.64c0 .354.279.639.628.639a.631.631 0 00.628-.64c0-.355-.28-.64-.628-.64zm-.384-4.992a.24.24 0 00.244-.249.24.24 0 00-.244-.249.24.24 0 00-.244.249c0 .142.122.249.244.249zM11.991.497a.24.24 0 00.245-.248A.24.24 0 0011.99 0a.24.24 0 00-.244.249c0 .133.108.236.223.247l.021.001zM2.011 6.36a.24.24 0 00.245-.249.24.24 0 00-.244-.249.24.24 0 00-.244.249.24.24 0 00.244.249zm0 11.263a.24.24 0 00-.243.248.24.24 0 00.244.249.24.24 0 00.244-.249.252.252 0 00-.244-.248zm19.995-.018a.24.24 0 00-.245.248.24.24 0 00.245.25.24.24 0 00.244-.249.24.24 0 00-.22-.248l-.024-.001z" fill="#3f7fff"
+  ></path>
+</svg>
+  `;
+  const svgMinimax = `
+<svg height="1em" style="flex:none;line-height:1" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><title>Minimax</title><defs><linearGradient id="lobe-icons-minimax-fill" x1="0%" x2="100.182%" y1="50.057%" y2="50.057%"><stop offset="0%" stop-color="#E2167E"></stop><stop offset="100%" stop-color="#FE603C"></stop></linearGradient></defs><path d="M16.278 2c1.156 0 2.093.927 2.093 2.07v12.501a.74.74 0 00.744.709.74.74 0 00.743-.709V9.099a2.06 2.06 0 012.071-2.049A2.06 2.06 0 0124 9.1v6.561a.649.649 0 01-.652.645.649.649 0 01-.653-.645V9.1a.762.762 0 00-.766-.758.762.762 0 00-.766.758v7.472a2.037 2.037 0 01-2.048 2.026 2.037 2.037 0 01-2.048-2.026v-12.5a.785.785 0 00-.788-.753.785.785 0 00-.789.752l-.001 15.904A2.037 2.037 0 0113.441 22a2.037 2.037 0 01-2.048-2.026V18.04c0-.356.292-.645.652-.645.36 0 .652.289.652.645v1.934c0 .263.142.506.372.638.23.131.514.131.744 0a.734.734 0 00.372-.638V4.07c0-1.143.937-2.07 2.093-2.07zm-5.674 0c1.156 0 2.093.927 2.093 2.07v11.523a.648.648 0 01-.652.645.648.648 0 01-.652-.645V4.07a.785.785 0 00-.789-.78.785.785 0 00-.789.78v14.013a2.06 2.06 0 01-2.07 2.048 2.06 2.06 0 01-2.071-2.048V9.1a.762.762 0 00-.766-.758.762.762 0 00-.766.758v3.8a2.06 2.06 0 01-2.071 2.049A2.06 2.06 0 010 12.9v-1.378c0-.357.292-.646.652-.646.36 0 .653.29.653.646V12.9c0 .418.343.757.766.757s.766-.339.766-.757V9.099a2.06 2.06 0 012.07-2.048 2.06 2.06 0 012.071 2.048v8.984c0 .419.343.758.767.758.423 0 .766-.339.766-.758V4.07c0-1.143.937-2.07 2.093-2.07z" fill="url(#lobe-icons-minimax-fill)" fill-rule="nonzero"></path></svg>
+  `;
+  const svgKimi = `
+<svg height="1em" style="flex:none;line-height:1" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><title>Kimi</title><rect width="24" height="24" fill="#1A1A1A" rx="4"/><path d="M21.846 0a1.923 1.923 0 110 3.846H20.15a.226.226 0 01-.227-.226V1.923C19.923.861 20.784 0 21.846 0z" fill="#1783FF"></path><path d="M11.065 11.199l7.257-7.2c.137-.136.06-.41-.116-.41H14.3a.164.164 0 00-.117.051l-7.82 7.756c-.122.12-.302.013-.302-.179V3.82c0-.127-.083-.23-.185-.23H3.186c-.103 0-.186.103-.186.23V19.77c0 .128.083.23.186.23h2.69c.103 0 .186-.102.186-.23v-3.25c0-.069.025-.135.069-.178l2.424-2.406a.158.158 0 01.205-.023l6.484 4.772a7.677 7.677 0 003.453 1.283c.108.012.2-.095.2-.23v-3.06c0-.117-.07-.212-.164-.227a5.028 5.028 0 01-2.027-.807l-5.613-4.064c-.117-.078-.132-.279-.028-.381z" fill="#fff"></path></svg>
+  `;
   const svgDefault = `
 <svg
   t="1763444006745"
@@ -1384,6 +1503,16 @@ function getSvgContent(chatType) {
       return svgDeepseek;
     case 'router':
       return svgRouter;
+    case 'nvidia':
+      return svgNvidia;
+    case 'glm':
+    case 'zhipu':
+      return svgZhipu;
+    case 'minimax':
+      return svgMinimax;
+    case 'kimi':
+    case 'moonshot':
+      return svgKimi;
     default:
       return svgDefault;
   }
@@ -1415,7 +1544,7 @@ function getManifestContent(title) {
   return str.trim();
 }
 
-function getHtmlContent(modelIds, tavilyKeys, title) {
+function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
   let htmlContent = `<!doctype html>
 <html lang="zh-Hans">
   <head>
@@ -2631,6 +2760,18 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
         }
       }
       
+      /* TTS 滑块底轨颜色（覆盖系统深色模式下的 #3b3b3b） */
+      #ttsSpeedSlider::-webkit-slider-runnable-track,
+      #ttsPitchSlider::-webkit-slider-runnable-track {
+        background: #eaeaea;
+        border-radius: 8px;
+      }
+      #ttsSpeedSlider::-moz-range-track,
+      #ttsPitchSlider::-moz-range-track {
+        background: #eaeaea;
+        border-radius: 8px;
+      }
+      
 </style>
     <script>
       var isWechat = new RegExp('wechat', 'i').test(window.navigator.userAgent);
@@ -3557,6 +3698,60 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     v-html="renderMarkdown(getBotMessageContent(msg, msgIndex))"
                     @click="answerClickHandler"
                   ></div>
+                  <!-- TTS 朗读 footer -->
+                  <div
+                    v-if="ttsSupported && msg.content"
+                    v-show="!isCapturing"
+                    class="content-tts-footer"
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                      margin-top: 8px;
+                      padding-top: 12px;
+                      border-top: 1px solid #f0f0f0;
+                      min-height: 34px;
+                    "
+                  >
+                    <button
+                      @click="playTts(msg, msgIndex)"
+                      :disabled="ttsLoadingMsgIndex !== null"
+                      :title="ttsLoadingMsgIndex === msgIndex ? '生成中…' : (ttsAudioMap[msgIndex] ? '重新朗读' : '朗读')"
+                      style="
+                        flex-shrink: 0;
+                        background: none;
+                        border: 1px solid #e0e0e0;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        padding: 3px 8px;
+                        font-size: 15px;
+                        line-height: 1;
+                        color: #888;
+                        transition:
+                          border-color 0.15s,
+                          color 0.15s,
+                          background 0.15s;
+                      "
+                      @mouseover="\$event.currentTarget.style.borderColor='#5fbdbd';\$event.currentTarget.style.color='#5fbdbd'"
+                      @mouseout="\$event.currentTarget.style.borderColor='#e0e0e0';\$event.currentTarget.style.color='#888'"
+                    >
+                      <span v-if="ttsLoadingMsgIndex === msgIndex">⏳</span>
+                      <span v-else>🔊</span>
+                    </button>
+                    <audio
+                      v-if="ttsAudioMap[msgIndex]"
+                      :src="ttsAudioMap[msgIndex]"
+                      :data-tts-index="msgIndex"
+                      controls
+                      class="tts-audio-player"
+                      style="
+                        flex: 1;
+                        height: 30px;
+                        min-width: 0;
+                        max-width: 100%;
+                      "
+                    ></audio>
+                  </div>
                 </div>
               </template>
               <!-- 流式回答占位（当最后一条是用户消息且正在生成回复时） -->
@@ -4156,6 +4351,114 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
               🔗 测试连接
             </button>
           </div>
+
+          <!-- TTS 语音配置（仅 ttsSupported 时可见） -->
+          <div
+            v-show="ttsSupported"
+            id="ttsConfigSection"
+            style="
+              padding: 16px;
+              background: #f8f9fa;
+              border-radius: 8px;
+              margin-bottom: 10px;
+            "
+          >
+            <label
+              style="
+                display: block;
+                margin-bottom: 12px;
+                font-weight: 600;
+                color: #333;
+              "
+            >
+              🔊 TTS 语音
+            </label>
+            <div style="margin-bottom: 12px">
+              <label
+                style="
+                  display: block;
+                  margin-bottom: 4px;
+                  font-size: 13px;
+                  color: #555;
+                "
+                >音色</label
+              >
+              <select
+                id="ttsVoice"
+                style="
+                  width: 100%;
+                  padding: 8px 12px;
+                  border: 1px solid #ddd;
+                  border-radius: 6px;
+                  font-size: 14px;
+                  box-sizing: border-box;
+                  background: #fff;
+                "
+              >
+                <option value="alloy">alloy — 云扬（专业新闻男声）</option>
+                <option value="ash">ash — 云希（阳光清晰男声）</option>
+                <option value="ballad">ballad — 晓涵（柔美知性女声）</option>
+                <option value="cedar">cedar — 晓秋（成熟沉稳女声）</option>
+                <option value="coral">coral — 晓晓（温柔亲切女声）</option>
+                <option value="echo">echo — 晓北（磁性东北女声）</option>
+                <option value="fable">fable — 云健（激情演讲男声）</option>
+                <option value="marin">marin — 晓颜（清新活泼女声）</option>
+                <option value="nova">nova — 晓伊（活泼年轻女声）</option>
+                <option value="onyx">onyx — 云泽（低沉厚重男声）</option>
+                <option value="sage">sage — 晓萱（冷静理性女声）</option>
+                <option value="shimmer">shimmer — 晓睿（轻柔细腻女声）</option>
+                <option value="verse">verse — 晓墨（多变富表现力女声）</option>
+              </select>
+            </div>
+            <div style="margin-bottom: 12px">
+              <label
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  margin-bottom: 4px;
+                  font-size: 13px;
+                  color: #555;
+                "
+              >
+                <span>语速</span
+                ><span id="ttsSpeedVal" style="color: #5fbdbd; font-weight: 600"
+                  >1.00</span
+                >
+              </label>
+              <input
+                type="range"
+                id="ttsSpeedSlider"
+                min="0.25"
+                max="2.0"
+                step="0.05"
+                style="width: 100%; accent-color: #5fbdbd"
+              />
+            </div>
+            <div>
+              <label
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  margin-bottom: 4px;
+                  font-size: 13px;
+                  color: #555;
+                "
+              >
+                <span>语调</span
+                ><span id="ttsPitchVal" style="color: #5fbdbd; font-weight: 600"
+                  >1.00</span
+                >
+              </label>
+              <input
+                type="range"
+                id="ttsPitchSlider"
+                min="0.5"
+                max="1.5"
+                step="0.05"
+                style="width: 100%; accent-color: #5fbdbd"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -4176,6 +4479,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             errorMessage: '',
             selectedModel: '',
             availableModels: ['\$MODELS_PLACEHOLDER\$'],
+            ttsSupported: false,
+            // TTS 播放相关
+            ttsVoice: 'alloy',
+            ttsSpeed: 1.0,
+            ttsPitch: 1.0,
+            ttsLoadingMsgIndex: null, // 当前正在生成 TTS 的消息索引
+            ttsAudioMap: {}, // { msgIndex: blobUrl }
             sessions: [],
             currentSessionId: null,
             isFoldRole: false,
@@ -4395,6 +4705,7 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           window.addEventListener('popstate', this.handlePopState);
 
           await this.loadData();
+          this.loadTtsSettings();
           if (this.sessions.length === 0) {
             this.createNewSession();
           }
@@ -4606,6 +4917,36 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
                     this.reloadPage();
                   });
                 }
+
+                // 填充 TTS 设置值
+                var ttsVoiceEl = \$('#ttsVoice');
+                var ttsSpeedEl = \$('#ttsSpeedSlider');
+                var ttsPitchEl = \$('#ttsPitchSlider');
+                var ttsSpeedValEl = \$('#ttsSpeedVal');
+                var ttsPitchValEl = \$('#ttsPitchVal');
+                if (ttsVoiceEl) ttsVoiceEl.value = this.ttsVoice;
+                if (ttsSpeedEl) {
+                  ttsSpeedEl.value = this.ttsSpeed;
+                  if (ttsSpeedValEl)
+                    ttsSpeedValEl.textContent = Number(this.ttsSpeed).toFixed(
+                      2
+                    );
+                  ttsSpeedEl.addEventListener('input', function () {
+                    if (ttsSpeedValEl)
+                      ttsSpeedValEl.textContent = Number(this.value).toFixed(2);
+                  });
+                }
+                if (ttsPitchEl) {
+                  ttsPitchEl.value = this.ttsPitch;
+                  if (ttsPitchValEl)
+                    ttsPitchValEl.textContent = Number(this.ttsPitch).toFixed(
+                      2
+                    );
+                  ttsPitchEl.addEventListener('input', function () {
+                    if (ttsPitchValEl)
+                      ttsPitchValEl.textContent = Number(this.value).toFixed(2);
+                  });
+                }
               },
               preConfirm: async () => {
                 const isValid = await this.validateAndSaveSettings();
@@ -4815,6 +5156,17 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
             // 保存API Key
             this.apiKey = apiKey;
             await this.saveApiKey();
+
+            // 保存 TTS 设置
+            if (this.ttsSupported) {
+              var ttsVoiceEl = \$('#ttsVoice');
+              var ttsSpeedEl = \$('#ttsSpeedSlider');
+              var ttsPitchEl = \$('#ttsPitchSlider');
+              if (ttsVoiceEl) this.ttsVoice = ttsVoiceEl.value;
+              if (ttsSpeedEl) this.ttsSpeed = parseFloat(ttsSpeedEl.value);
+              if (ttsPitchEl) this.ttsPitch = parseFloat(ttsPitchEl.value);
+              this.saveTtsSettings();
+            }
 
             // 如果切换了存储模式，需要重新加载数据
             if (oldMode !== storageMode) {
@@ -5238,6 +5590,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           createNewSession() {
             if (this.isLoading || this.isStreaming || this.isUploadingImage)
               return;
+            // 切换会话时停止所有 TTS 播放并清空音频缓存
+            this.stopAllTts();
+            this.ttsAudioMap = {};
             // 保存当前会话的草稿
             this.saveDraftToCurrentSession();
             const firstSession = this.sessions[0];
@@ -5271,6 +5626,9 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
           switchSession(sessionId) {
             if (this.isLoading || this.isStreaming || this.isUploadingImage)
               return;
+            // 切换会话时停止所有 TTS 播放并清空音频缓存
+            this.stopAllTts();
+            this.ttsAudioMap = {};
             // 保存当前会话的草稿
             this.saveDraftToCurrentSession();
             this.currentSessionId = sessionId;
@@ -5994,6 +6352,113 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 
             return html;
           },
+
+          // ── TTS 朗读 ────────────────────────────────────────────────────
+          saveTtsSettings() {
+            try {
+              localStorage.setItem(
+                'tts_settings',
+                JSON.stringify({
+                  voice: this.ttsVoice,
+                  speed: this.ttsSpeed,
+                  pitch: this.ttsPitch
+                })
+              );
+            } catch (e) {}
+          },
+
+          loadTtsSettings() {
+            try {
+              var saved = localStorage.getItem('tts_settings');
+              if (saved) {
+                var p = JSON.parse(saved);
+                if (p.voice) this.ttsVoice = p.voice;
+                if (p.speed) this.ttsSpeed = p.speed;
+                if (p.pitch) this.ttsPitch = p.pitch;
+              }
+            } catch (e) {}
+          },
+
+          // 停止所有正在播放的 TTS 音频
+          stopAllTts() {
+            if (!this.ttsSupported || !this.ttsAudioMap) return;
+            var audioEls = document.querySelectorAll('.tts-audio-player');
+            audioEls.forEach(function (el) {
+              if (!el.paused) {
+                el.pause();
+                el.currentTime = 0;
+              }
+            });
+          },
+
+          // 点击朗读按钮
+          async playTts(msg, msgIndex) {
+            // 暂停其他正在播放的音频
+            this.stopAllTts();
+
+            // 已有缓存音频 → 直接播放
+            if (this.ttsAudioMap[msgIndex]) {
+              await this.\$nextTick();
+              var cached = document.querySelector(
+                \`[data-tts-index="\${msgIndex}"]\`
+              );
+              if (cached) cached.play().catch(function () {});
+              return;
+            }
+
+            // 防重入
+            if (this.ttsLoadingMsgIndex !== null) return;
+            this.ttsLoadingMsgIndex = msgIndex;
+
+            try {
+              const input = (msg.content || '')
+                .replace(/^> 联网搜索：[\\s\\S]*条相关信息。/, '')
+                .replace(/<details class="thinking"[\\s\\S]*?<\\/details>/g, '')
+                .trim();
+              var res = await fetch('/speech', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: 'Bearer ' + this.apiKey
+                },
+                body: JSON.stringify({
+                  input: input,
+                  voice: this.ttsVoice,
+                  speed: this.ttsSpeed,
+                  pitch: this.ttsPitch
+                })
+              });
+
+              if (!res.ok) {
+                var errText = await res.text();
+                this.showToast('朗读失败: ' + (errText || res.status), 'error');
+                return;
+              }
+
+              var blob = await res.blob();
+              var audioUrl = URL.createObjectURL(blob);
+
+              // 替换旧 URL（如果存在）
+              if (this.ttsAudioMap[msgIndex]) {
+                URL.revokeObjectURL(this.ttsAudioMap[msgIndex]);
+              }
+              // 触发 Vue 响应式更新
+              this.ttsAudioMap = Object.assign({}, this.ttsAudioMap, {
+                [msgIndex]: audioUrl
+              });
+
+              await this.\$nextTick();
+              var audioEl = document.querySelector(
+                \`[data-tts-index="\${msgIndex}"]\`
+              );
+              if (audioEl) audioEl.play().catch(function () {});
+            } catch (e) {
+              this.showToast('朗读出错: ' + e.message, 'error');
+            } finally {
+              this.ttsLoadingMsgIndex = null;
+            }
+          },
+          // ────────────────────────────────────────────────────────────────
 
           copyToClipboard(text) {
             const regexRel = /\\[(\\d+)\\]\\(javascript:void\\(0\\)\\)/g;
@@ -7127,6 +7592,13 @@ function getHtmlContent(modelIds, tavilyKeys, title) {
 </html>
 `; // htmlContent FINISHED
   htmlContent = htmlContent.replace(`'$MODELS_PLACEHOLDER$'`, `'${modelIds}'`);
+  // 注入 TTS 支持状态
+  if (ttsEnabled) {
+    htmlContent = htmlContent.replace(
+      'ttsSupported: false',
+      'ttsSupported: true'
+    );
+  }
   // 控制"联网搜索"复选框的显隐
   if (!tavilyKeys) {
     htmlContent = htmlContent.replace(`"model-search-label"`, `"hidden"`);

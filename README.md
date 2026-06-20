@@ -13,7 +13,7 @@
 
 本项目致力于提供“养老级”的稳定体验，功能丰富且不失简洁：
 
-- 🚀 **一键部署**：基于 Serverless 架构，免费、快速，无需维护服务器。
+- 🚀 **一键部署**：基于 Serverless 架构，免费、快速，无需维护服务器；也支持 Docker 自托管部署。
 - 🔐 **安全访问**：支持**共享密码**（长期使用）和**演示密码**（限制频率），保护 API Key 不泄露。
 - 💬 **流畅对话**：支持打字机流式响应 (Streaming)，体验丝滑。
 - 🌐 **多模型支持**：兼容 OpenAI (GPT-4o/5)、Google (Gemini)、Claude、以及各类国产大模型（Qwen/DeepSeek等）。
@@ -26,6 +26,7 @@
 - 📸 **一键分享**：自动生成精美的问答长图，方便社交分享。
 - 🏷️ **智能管理**：根据对话内容自动生成标题，支持多轮对话，保持界面清爽。
 - 🎨 **高度定制**：支持自定义网站标题、Favicon 图标以及模型列表。
+- 🔊 **语音朗读 (TTS)**：集成 TTS 语音合成，可将 AI 回答一键转为语音播放，支持多种音色、语速、语调调节。
 
 ## 🖼️ 界面预览
 
@@ -66,6 +67,23 @@
    - **Deno Deploy**: 登录 [Deno Dash](https://dash.deno.com/) -> New Playground -> 粘贴代码 -> Save & Deploy。
    - **Cloudflare Workers**: 登录 [Cloudflare Dash](https://dash.cloudflare.com/) -> Workers & Pages -> Create Worker -> Edit code -> 粘贴代码 -> Deploy。
 
+### 部署方式 C：Docker 自托管
+> **特点**：完全自托管，数据不经过任何第三方平台，适合有服务器的用户。
+> **支持平台**：任何支持 Docker 的 Linux / Windows / macOS 服务器
+
+1. **拉取镜像并运行**：
+```bash
+docker run -d \
+  -p 8787:8787 \
+  -e API_KEYS="sk-your-key" \
+  -e MODEL_IDS="gpt-4o,gpt-4o-mini" \
+  -e SECRET_PASSWORD="your-password" \
+  --name openai-webui-lite \
+  icheerme/openai-webui-lite:latest
+```
+2. **访问**：打开 `http://localhost:8787` 即可使用。
+3. **环境变量**：所有支持的环境变量与 Serverless 部署完全一致，通过 `-e` 参数传入即可。
+
 ### 后续配置 (通用)
 1. **绑定域名**：在项目设置中绑定您的自定义域名（自动申请 SSL）。
    - *Deno Deploy*: Settings -> Domains
@@ -90,24 +108,28 @@
 | :--- | :---: | :--- | :--- |
 | `SECRET_PASSWORD` | 否 | **共享密码**。设置后，用户需输入此密码才能使用您配置的 API Key。适合家人朋友共享。 | `my-secret-pwd` |
 | `API_KEYS` | 否 | **API Key 池**。多个 Key 用英文逗号 `,` 分隔，系统会自动轮询使用，实现简单的负载均衡。 | `sk-key1,sk-key2` |
-| `MODEL_IDS` | **是** | **模型列表**。定义前端下拉框显示的模型。支持 `ID=显示名称` 格式。 | `gpt-4o,gemini-2.5-pro` |
+| `MODEL_IDS` | **是** | **模型列表**。定义前端下拉框显示的模型。支持 `ID=显示名称` 格式。 | `gpt-5.5,gemini-3-flash-preview` |
 | `API_BASE` | 否 | **接口地址**。默认为 `https://api.openai.com`。如使用中转服务需修改此项。 | `https://api.openai.com` |
 | `TAVILY_KEYS` | 否 | **联网搜索 Key**。配置后前端会出现“联网搜索”选项。获取地址：[tavily.com](https://tavily.com/) | `tvly-xxxx` |
 | `TITLE` | 否 | **网站标题**。自定义浏览器标签页标题。 | `我的 AI 助手` |
 | `DEMO_PASSWORD` | 否 | **演示密码**。用于公开演示，有频率限制。 | `demo123` |
 | `DEMO_MAX_TIMES_PER_HOUR` | 否 | 演示密码每小时最大调用次数，默认 15。 | `20` |
+| `TTS_API_BASE` | 否 | **TTS 服务地址**。兼容 OpenAI `/v1/audio/speech` 接口的服务地址，配置后前端显示语音朗读按钮。 | `https://tts.example.com` |
+| `TTS_API_KEY` | 否 | **TTS 服务 API Key**。若 TTS 服务需要独立鉴权，在此填写；留空则复用用户自身的 API Key。 | `sk-tts-xxx` |
+
+> **💡 免费 TTS 推荐**：如果您没有支持 TTS 的 API 服务，推荐部署作者的另一个开源项目 [edgetts-cloudflare-workers-webui](https://github.com/icheer/edgetts-cloudflare-workers-webui)。它基于微软 Edge TTS 神经网络语音引擎，提供完全兼容 OpenAI `/v1/audio/speech` 格式的 API 端点，**完全免费**，部署在 Cloudflare Workers 上只需几分钟。部署完成后将其 URL 填入 `TTS_API_BASE` 即可。
 
 ### 🔌 常见服务商配置参考
 
 | 服务商 | API_BASE | API_KEYS 示例 | MODEL_IDS 示例 | 备注 |
 | :--- | :--- | :--- | :--- | :--- |
 | **OpenAI** | `https://api.openai.com` | `sk-proj-xxx` | `gpt-4o,gpt-4o-mini,o1-preview` | 推荐 Deno 部署 |
-| **Gemini** | `https://generativelanguage.googleapis.com` | `AIzaSyxxx` | `gemini-2.5-pro,gemini-2.5-flash` | 推荐 Deno 部署 |
-| **心流 AI** | `https://apis.iflow.cn` | `sk-xxx` | `qwen3-max,deepseek-v3` | 国产模型聚合，Cloudflare 部署即可 |
+| **Gemini** | `https://generativelanguage.googleapis.com` | `AIzaSyxxx` | `gemini-3.1-pro-preview,gemini-3-flash-preview` | 推荐 Deno 部署 |
+| **NVIDIA NIM** | `https://integrate.api.nvidia.com` | `nvapi-xxx` | `deepseek-ai/deepseek-r1,meta/llama-3.3-70b-instruct` | 免费 API Key，海量开源模型 |
 | **OpenRouter** | `https://openrouter.ai/api` | `sk-or-xxx` | `anthropic/claude-sonnet-4.5` | 聚合平台 |
 | **DeepSeek** | `https://api.deepseek.com` | `sk-xxx` | `deepseek-chat,deepseek-coder` | 国产之光 |
 
-> **💡 资源推荐**：如果您需要免费且稳定的国产大模型 API（如 Qwen, DeepSeek），推荐尝试 [心流 AI](https://iflow.cn/?invite_code=vNEjKzbSTbhgWooCw15Bsw%3D%3D&open=setting)，官方宣称 API 永久免费（但 API Key 有效期为7天，过期后需手动重置新 Key），支持 Cloudflare Workers 稳定调用。
+> **💡 资源推荐**：如果您需要免费使用高质量开源模型（DeepSeek-R1、Llama 3.3 等），推荐 [NVIDIA NIM](https://build.nvidia.com)。在 build.nvidia.com 注册账号后即可免费申请 API Key（`nvapi-xxx`），API 服务地址为 `https://integrate.api.nvidia.com/v1`，支持数十种主流开源模型，免费额度对日常使用十分充裕。
 
 ---
 
@@ -127,6 +149,10 @@
    - **存储模式设置**：点击设置按钮可选择聊天记录的存储方式：
      - 💾 **本地存储**：聊天记录保存在浏览器 IndexedDB 中，私密安全但仅限当前设备
      - ☁️ **WebDAV 云端同步**：聊天记录同步至您的 WebDAV 云盘（支持群晖、NextCloud 等），实现多设备同步
+   - **语音朗读 (TTS)**：每条 AI 回答下方会出现 🔊 按钮（需在环境变量中配置 `TTS_API_BASE`）。
+     - 点击按钮生成并播放语音，支持暂停/拖动进度条。
+     - 在**设置**中可切换 13 种音色，并调节**语速**（0.25x ~ 2.0x）和**语调**（0.5 ~ 1.5）。
+     - 已生成的音频会缓存在当前会话，无需重复请求。
    - **追问**：支持多轮追问，保持上下文，至多 8 轮问答。
    - **分享**：点击右上角分享按钮，生成长图。
 
@@ -225,11 +251,14 @@ A: 在环境变量中配置 `TAVILY_KEYS`，然后在 Web 界面勾选"联网搜
 **Q: Tavily API Key 如何获取？**  
 A: 访问 [Tavily](https://tavily.com/) 注册账号并获取 API Key。可以配置多个 Key 用逗号分隔，系统会自动轮换使用。
 
+**Q: 如何免费使用 TTS 语音朗读功能？**  
+A: 推荐部署 [edgetts-cloudflare-workers-webui](https://github.com/icheer/edgetts-cloudflare-workers-webui)，这是作者（魔改的）另一个开源项目，基于微软 Edge TTS 提供 OpenAI 兼容的语音合成接口，完全免费，支持 13 种中英文音色、流式传输和超长文本处理。部署到 Cloudflare Workers 后，将服务地址填入本项目的 `TTS_API_BASE` 环境变量即可。
+
 **Q: 如何自定义界面标题和 Favicon？**  
 A: 通过环境变量 `TITLE` 设置自定义标题，如 `TITLE=My AI Assistant`。标题会同时影响网页标题和 Favicon 的显示样式。
 
 **Q: TITLE 环境变量是如何影响 Favicon 的？**  
-A: `TITLE` 中包含 Gemini、OpenAI、Claude、Qwen、DeepSeek、Router 字样时（忽略大小写），网站 Favicon 会自动变为相应的厂商 Logo，否则 Logo 默认为 ChatBot 的样式。
+A: `TITLE` 中包含 Gemini、OpenAI、Claude、Qwen、DeepSeek、Kimi/Moonshot、Minimax、Zhipu/GLM、Router、Nvidia 字样时（不区分大小写），网站 Favicon 会自动变为相应的厂商 Logo，否则 Logo 默认为 ChatBot 的样式。
 
 ## 📄 许可证
 

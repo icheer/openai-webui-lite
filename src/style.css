@@ -1173,3 +1173,15 @@ textarea::placeholder {
     transform: scale(0.85);
   }
 }
+
+/* TTS 滑块底轨颜色（覆盖系统深色模式下的 #3b3b3b） */
+#ttsSpeedSlider::-webkit-slider-runnable-track,
+#ttsPitchSlider::-webkit-slider-runnable-track {
+  background: #eaeaea;
+  border-radius: 8px;
+}
+#ttsSpeedSlider::-moz-range-track,
+#ttsPitchSlider::-moz-range-track {
+  background: #eaeaea;
+  border-radius: 8px;
+}
