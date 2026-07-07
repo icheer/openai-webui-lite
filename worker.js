@@ -936,10 +936,9 @@ export default {
 /**
  * 构建代理请求配置
  */
-function buildProxyRequest(originalRequest, apiKey) {
+async function buildProxyRequest(originalRequest, apiKey) {
   const headers = new Headers();
 
-  // 复制必要的请求头
   const headersToForward = [
     'content-type',
     'accept',
@@ -949,19 +948,19 @@ function buildProxyRequest(originalRequest, apiKey) {
 
   headersToForward.forEach(headerName => {
     const value = originalRequest.headers.get(headerName);
-    if (value) {
-      headers.set(headerName, value);
-    }
+    if (value) headers.set(headerName, value);
   });
 
-  // 设置API密钥
   headers.set('Authorization', `Bearer ${apiKey}`);
 
+  const method = originalRequest.method.toUpperCase();
+  const hasBody = !['GET', 'HEAD'].includes(method);
+
   return {
-    method: originalRequest.method,
-    headers: headers,
-    body: originalRequest.body,
-    redirect: 'follow',
+    method,
+    headers,
+    body: hasBody ? await originalRequest.arrayBuffer() : undefined,
+    redirect: 'manual',
     ...(isNode ? { duplex: 'half' } : {})
   };
 }
