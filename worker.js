@@ -1079,10 +1079,10 @@ function getTavilyPrompt(query) {
 # Role: Advanced Search Strategist
 
 ## 核心定位
-你是Max，一个专为Tavily Search API设计的搜索策略生成器。你的唯一目标是**最大化信息获取的广度与深度**，同时通过精准的关键词设计避免信息冗余或无关联性。
+你是Max，一个专为Tavily Search API设计的搜索策略生成器。你的唯一目标是**最大化信息获取的广度与深度**，通过精准的关键词设计避免信息冗余或无关联性。
 
 ## 关键任务
-从用户的自然语言中提取意图，构造 **0 到 5 个** 搜索关键词，并设定合适的结果数量。
+从用户的自然语言（后附的 \`<User_Context>\` ）中提取意图，构造 **0 到 5 个** 搜索关键词，并设定合适的结果数量。
 
 ## 决策流程
 
@@ -1204,9 +1204,9 @@ function getTavilyPrompt(query) {
 Current Date: ${new Date().toISOString()}
 
 ## 待处理的用户输入
-<User_Question>
+<User_Context>
 ${query}
-</User_Question>
+</User_Context>
   `;
   return str.trim();
 }
@@ -6974,10 +6974,11 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
                     new Date().toDateString() +
                     ' ' +
                     new Date().toTimeString() +
-                    '，请据此推断"最近"、"今年"等时间词的具体含义。\\n你无需针对"用户澄清真实时间"这件事做出任何提及和表态，请专注于核心问题的解答。\\n\\n' +
+                    '，请据此推断用户问句中可能存在的"最近"、"今年"等时间词的具体含义。\\n你无需针对"用户澄清真实时间"这件事做出任何提及和表态，请专注于核心问题的解答。\\n\\n' +
                     '## 严格执行原则 (Critical Rules)\\n' +
                     '### 1. 事实基准 (Grounding)\\n' +
                     '*   **优先权**：搜索语料的权重 **高于** 你的内部训练知识。如果搜索结果与你的记忆冲突（特别是时效性信息），**必须**以搜索结果为准。\\n' +
+                    '*   **相关性**：搜索结果中可能包含与问题不直接相关甚至无关的信息，请根据问题的核心进行筛选。\\n' +
                     '*   **诚实性**：如果搜索结果中没有包含回答问题所需的关键信息，请明确指出"搜索结果未提及此事"，严禁编造数据。\\n\\n' +
                     '### 2. "最大化"信息的处理\\n' +
                     '*   你收到的搜索结果可能覆盖了问题的不同维度（定义、新闻、正反观点等）。\\n' +
@@ -6998,12 +6999,12 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
                     '4.  **来源列表 (References)**\\n' +
                     '    *   列出你实际引用的参考链接(应当是包含真实url、可通过点击跳转的Markdown超链接，例如：1. [DeepSeek - Wikipedia](https://en.wikipedia.org/wiki/DeepSeek) )。\\n\\n' +
                     '---\\n\\n' +
-                    '## 用户问题 (User Question)\\n' +
-                    '<User_Question>\\n' +
+                    "## 用户问句 (User's Query)\\n" +
+                    '<User_Query>\\n' +
                     queryStr +
                     '\\n' +
-                    '</User_Question>\\n\\n' +
-                    '现在你的任务是基于上述提供的**实时搜索结果**（Tavily_Search_Context），回答用户的原始问题。你需要像撰写深度调查报告一样，将碎片化的信息拼凑成完整的逻辑链条。'
+                    '</User_Query>\\n\\n' +
+                    '现在你的任务是基于上述提供的**实时搜索结果**（<Tavily_Search_Context>），回答用户的原始问题。你需要像撰写深度调查报告一样，将碎片化的信息拼合成完整的逻辑链条。'
                 });
                 // 显示搜索结果数量（如果有）
                 if (searchQueries.length && !this.streamingContent) {
