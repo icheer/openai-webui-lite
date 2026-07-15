@@ -4156,11 +4156,34 @@
             var searchQueries = [];
             var searchCounts = [];
             if (this.needSearch) {
-              var queryStr = userMessage;
-              if (session.messages.length > 1) {
-                queryStr +=
-                  '\n\n当前会话摘要："' + (session.summary || '') + '"';
+              // 构建包含历史用户发言的上下文
+              var queryStr = '';
+
+              // 如果当前会话有摘要标题, 则在搜索时加入摘要标题作为上下文
+              if (session.summary) {
+                queryStr += '## 对话摘要标题：\n' + session.summary + '\n\n';
               }
+
+              // 收集历史用户消息（最多取最近5轮，避免过长）
+              var userMessages = session.messages
+                .filter(msg => msg.role === 'user')
+                .slice(-5); // 取最近5轮用户发言
+
+              if (userMessages.length > 1) {
+                queryStr += '## 用户历史问句： \n```\n';
+                userMessages.slice(0, -1).forEach((msg, index) => {
+                  queryStr += `${index + 1}. ${(msg.content || '').slice(0, 200)}\n`;
+                });
+                queryStr += '```\n\n';
+              }
+
+              // 强调最新的问句
+              const latestSubTitle =
+                userMessages.length > 1
+                  ? '## 当前最新用户问句（请重点关注）：'
+                  : '## 用户问句：';
+              queryStr += latestSubTitle + '\n`' + userMessage + '`';
+
               var searchResList = await fetch('/search', {
                 method: 'POST',
                 headers: {
