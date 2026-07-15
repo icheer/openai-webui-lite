@@ -6902,7 +6902,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
 
               // 收集历史用户消息（最多取最近5轮，避免过长）
               var userMessages = session.messages
-                .filter(msg => msg.role === 'user')
+                .filter(msg => msg.type === 'user')
                 .slice(-5); // 取最近5轮用户发言
 
               if (userMessages.length > 1) {
