@@ -7035,6 +7035,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
                   model: this.selectedModel,
                   messages: apiMessages,
                   temperature: 1,
+                  reasoning_effort: 'high',
                   stream: true
                 }),
                 signal: this.abortController.signal
