@@ -7023,8 +7023,8 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
             try {
               // 如果上一步search中途已经被用户主动中止,则不再继续
               if (this.abortController === undefined) return;
-
               var url = '/v1/chat/completions';
+              var isGlm = this.selectedModel.includes('glm-5.3');
               var response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -7035,7 +7035,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
                   model: this.selectedModel,
                   messages: apiMessages,
                   temperature: 1,
-                  reasoning_effort: 'high',
+                  reasoning_effort: isGlm ? 'low' : 'medium',
                   stream: true
                 }),
                 signal: this.abortController.signal
