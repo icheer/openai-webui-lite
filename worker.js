@@ -481,7 +481,7 @@ async function handleRequest(request, env = {}) {
             'naturalnews.com', // Natural News（伪科学）
             'globalresearch.ca', // Global Research（阴谋论，维基百科黑名单）
             'zerohedge.com', // Zero Hedge（极端金融偏见）
-            'thegatewaypu<wbr>ndit.com', // Gateway Pundit（虚假新闻）
+            'thegatewaypundit.com', // Gateway Pundit（虚假新闻）
             'newsmax.com', // Newsmax（强烈保守派偏见）
             'oann.com', // One America News（虚假信息）
             'dailywire.com', // Daily Wire（强烈保守派）
@@ -495,7 +495,7 @@ async function handleRequest(request, env = {}) {
             'alternet.org', // AlterNet（维基百科认定不可靠）
             'commondreams.org', // Common Dreams（强烈左翼）
             'thecanary.co', // The Canary（维基百科认定不可靠）
-            'occupy<wbr>democrats.com', // Occupy Democrats（党派性强）
+            'occupydemocrats.com', // Occupy Democrats（党派性强）
             'truthout.org', // Truthout（强烈左翼）
 
             // 小报和低质量新闻
