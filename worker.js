@@ -1026,6 +1026,7 @@ function getLiteModelId(modelIds) {
     .map(i => i.split('=')[0].trim())
     .filter(i => i);
   const parts = [
+    'glm-5.3-flash',
     'deepseek-v',
     'silicon/deepseek-v4-flash',
     'tencent/deepseek-v4-flash',
