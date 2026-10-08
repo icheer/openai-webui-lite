@@ -4287,8 +4287,8 @@
             try {
               // 如果上一步search中途已经被用户主动中止,则不再继续
               if (this.abortController === undefined) return;
-
               var url = '/v1/chat/completions';
+              var isGlm = /glm\-\d/i.test(this.selectedModel);
               var response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -4299,7 +4299,7 @@
                   model: this.selectedModel,
                   messages: apiMessages,
                   temperature: 1,
-                  reasoning_effort: 'high',
+                  reasoning_effort: isGlm ? 'low' : 'medium',
                   stream: true
                 }),
                 signal: this.abortController.signal

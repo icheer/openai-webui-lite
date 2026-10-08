@@ -7024,7 +7024,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
               // 如果上一步search中途已经被用户主动中止,则不再继续
               if (this.abortController === undefined) return;
               var url = '/v1/chat/completions';
-              var isGlm = this.selectedModel.includes('glm-5.3');
+              var isGlm = /glm\\-\\d/i.test(this.selectedModel);
               var response = await fetch(url, {
                 method: 'POST',
                 headers: {
