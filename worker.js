@@ -692,6 +692,30 @@ ${truncatedAnswer}
       return createErrorResponse('Missing X-WebDAV-URL header', 400);
     }
 
+    // 校验目标 URL，防止 SSRF：仅允许 http/https，且禁止访问内网/本地/云元数据地址
+    let parsedWebdavUrl;
+    try {
+      parsedWebdavUrl = new URL(webdavUrl);
+    } catch (e) {
+      return createErrorResponse('Invalid X-WebDAV-URL header', 400);
+    }
+    const hostnameLower = parsedWebdavUrl.hostname.toLowerCase();
+    const isBlockedHost =
+      !['http:', 'https:'].includes(parsedWebdavUrl.protocol) ||
+      hostnameLower === 'localhost' ||
+      hostnameLower === '169.254.169.254' ||
+      /^0\./.test(hostnameLower) ||
+      /^127\./.test(hostnameLower) ||
+      /^10\./.test(hostnameLower) ||
+      /^192\.168\./.test(hostnameLower) ||
+      /^169\.254\./.test(hostnameLower) ||
+      /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostnameLower) ||
+      hostnameLower === '[::1]' ||
+      hostnameLower === '::1';
+    if (isBlockedHost) {
+      return createErrorResponse('Target WebDAV URL is not allowed', 400);
+    }
+
     // 构建目标 URL
     // 如果路径是 /webdav/xxx，则将 /xxx 附加到 webdavUrl
     let targetUrl = webdavUrl;
