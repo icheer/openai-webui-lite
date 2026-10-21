@@ -2894,7 +2894,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
               headers: getHeaders
             });
 
-            if (getResponse.status !== 200) {
+            if (getResponse.status < 200 || getResponse.status > 299) {
               return {
                 success: false,
                 error: '读取测试失败: HTTP ' + getResponse.status
