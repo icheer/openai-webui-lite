@@ -2877,8 +2877,8 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
               return { success: false, error: '没有写入权限' };
             }
 
-            // PUT 成功的状态码: 200, 201, 204
-            if (![200, 201, 204].includes(putResponse.status)) {
+            // PUT 成功的状态码: 200, 201, 204, 206
+            if (![200, 201, 204, 206].includes(putResponse.status)) {
               return {
                 success: false,
                 error:
@@ -3086,10 +3086,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
               headers: headers,
               body: body
             });
-            var success =
-              response.status === 200 ||
-              response.status === 201 ||
-              response.status === 204;
+            var success = [200, 201, 204, 206].includes(response.status);
             if (success && filename.endsWith('.gz')) {
               console.log('[WebDAV] gzip 文件上传成功');
             }
