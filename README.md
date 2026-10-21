@@ -233,6 +233,10 @@ A:
 3. 如果使用 Cloudflare Workers 部署，WebDAV 服务器必须使用 HTTPS（HTTP 会被阻止）
 4. 检查防火墙是否开放相应端口
 
+**Q: 下载到了会话文件，为什么仍提示“WebDAV无数据”？**
+
+A: 旧版本只接受 HTTP 200，会将 HTTP 206 响应误判为读取失败。当前版本兼容 200 和 206，并继续对 `.gz` 响应执行解压。若日志显示 `WebDAV GET 失败: 206`，请更新部署；若显示解压失败，请检查响应是否为完整的 gzip 文件，以及浏览器是否成功加载 fflate。
+
 **Q: 为什么推荐 Deno Deploy 而不是 Cloudflare Workers？**  
 A: 虽然两者都支持，但 Deno Deploy 的出口 IP 质量目前更好，很少被 OpenAI 或 Google 封锁，因此可以直接调用官方 API 而不需要额外的代理层。
 

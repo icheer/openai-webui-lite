@@ -2942,7 +2942,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
               method: 'GET',
               headers: headers
             });
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 206) {
               // 如果是 .gz 文件，尝试解压
               if (filenameWithoutQuery.endsWith('.gz')) {
                 try {
