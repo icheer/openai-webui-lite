@@ -481,7 +481,7 @@ async function handleRequest(request, env = {}) {
             'naturalnews.com', // Natural News（伪科学）
             'globalresearch.ca', // Global Research（阴谋论，维基百科黑名单）
             'zerohedge.com', // Zero Hedge（极端金融偏见）
-            'thegatewaypu<wbr>ndit.com', // Gateway Pundit（虚假新闻）
+            'thegatewaypundit.com', // Gateway Pundit（虚假新闻）
             'newsmax.com', // Newsmax（强烈保守派偏见）
             'oann.com', // One America News（虚假信息）
             'dailywire.com', // Daily Wire（强烈保守派）
@@ -495,7 +495,7 @@ async function handleRequest(request, env = {}) {
             'alternet.org', // AlterNet（维基百科认定不可靠）
             'commondreams.org', // Common Dreams（强烈左翼）
             'thecanary.co', // The Canary（维基百科认定不可靠）
-            'occupy<wbr>democrats.com', // Occupy Democrats（党派性强）
+            'occupydemocrats.com', // Occupy Democrats（党派性强）
             'truthout.org', // Truthout（强烈左翼）
 
             // 小报和低质量新闻
@@ -1028,8 +1028,8 @@ function getLiteModelId(modelIds) {
   const parts = [
     'silicon/deepseek-v4-flash',
     'tencent/deepseek-v4-flash',
-    'or/deepseek-v',
     'deepseek-v',
+    'or/deepseek-v',
     'qwen3-next',
     '-oss-',
     '-mini',
@@ -2877,8 +2877,8 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
               return { success: false, error: '没有写入权限' };
             }
 
-            // PUT 成功的状态码: 200, 201, 204
-            if (![200, 201, 204].includes(putResponse.status)) {
+            // PUT 成功的状态码: 200, 201, 204, 206
+            if (![200, 201, 204, 206].includes(putResponse.status)) {
               return {
                 success: false,
                 error:
@@ -2894,7 +2894,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
               headers: getHeaders
             });
 
-            if (getResponse.status !== 200) {
+            if (getResponse.status < 200 || getResponse.status > 299) {
               return {
                 success: false,
                 error: '读取测试失败: HTTP ' + getResponse.status
@@ -2942,7 +2942,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
               method: 'GET',
               headers: headers
             });
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 206) {
               // 如果是 .gz 文件，尝试解压
               if (filenameWithoutQuery.endsWith('.gz')) {
                 try {
@@ -3086,10 +3086,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
               headers: headers,
               body: body
             });
-            var success =
-              response.status === 200 ||
-              response.status === 201 ||
-              response.status === 204;
+            var success = [200, 201, 204, 206].includes(response.status);
             if (success && filename.endsWith('.gz')) {
               console.log('[WebDAV] gzip 文件上传成功');
             }
@@ -7023,8 +7020,8 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
             try {
               // 如果上一步search中途已经被用户主动中止,则不再继续
               if (this.abortController === undefined) return;
-
               var url = '/v1/chat/completions';
+              var isGlm = /glm\\-\\d/i.test(this.selectedModel);
               var response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -7035,7 +7032,7 @@ function getHtmlContent(modelIds, tavilyKeys, title, ttsEnabled = false) {
                   model: this.selectedModel,
                   messages: apiMessages,
                   temperature: 1,
-                  reasoning_effort: 'high',
+                  reasoning_effort: isGlm ? 'low' : 'medium',
                   stream: true
                 }),
                 signal: this.abortController.signal
