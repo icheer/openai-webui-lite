@@ -1,0 +1,71 @@
+name: Sync Upstream Repository
+
+on:
+  # 定时执行 - 每天 UTC 时间 00:00 执行（可自定义）
+  schedule:
+    - cron: '0 0 * * *'  # 每天午夜执行
+  
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: '强制同步（会覆盖本地更改）'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout 仓库
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 配置 Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: 添加上游仓库
+        run: |
+          # 替换为你的上游仓库地址
+          git remote add upstream https://github.com/icheer/openai-webui-lite || true
+          git fetch upstream
+      
+      - name: 同步上游更改
+        run: |
+          # 获取当前分支
+          CURRENT_BRANCH=$(git branch --show-current)
+          
+          if [ "${{ github.event.inputs.force_sync }}" == "true" ]; then
+            echo "执行强制同步..."
+            git reset --hard upstream/${CURRENT_BRANCH}
+          else
+            echo "执行合并同步..."
+            git merge upstream/${CURRENT_BRANCH} --no-edit || {
+              echo "合并冲突，请手动解决"
+              exit 1
+            }
+          fi
+      
+      - name: 推送更改
+        run: |
+          git push origin $(git branch --show-current) --force-with-lease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 创建同步报告
+        if: always()
+        run: |
+          echo "## 同步报告" >> $GITHUB_STEP_SUMMARY
+          echo "- 上游仓库: upstream" >> $GITHUB_STEP_SUMMARY
+          echo "- 同步分支: $(git branch --show-current)" >> $GITHUB_STEP_SUMMARY
+          echo "- 同步时间: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- 状态: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
